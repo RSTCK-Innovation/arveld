@@ -6,7 +6,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro build && node scripts/prepare-sites-build.mjs",
+		"build": "astro build",
+		"deploy:check": "wrangler deploy --dry-run",
+		"deploy": "wrangler deploy",
 		"preview": "astro preview",
 		"sync:brand": "node scripts/sync-arveld-brand.mjs"
 	},
@@ -22,5 +24,8 @@
 	},
 	"engines": {
 		"node": ">=22.12.0"
+	},
+	"devDependencies": {
+		"wrangler": "4.142.0"
 	}
 }

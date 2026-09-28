@@ -1,0 +1,104 @@
+name: Publish website
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      CLOUDFLARE_WEBSITE_API_TOKEN:
+        required: true
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: publish-website
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish:
+    name: Publish landing and documentation to arveld.com
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the deployment revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require validated main or a published signed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEPLOY_REF: ${{ github.ref }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          revision=$(git rev-parse HEAD)
+          git merge-base --is-ancestor "$revision" origin/main
+          if [[ -n "$VERSION" ]]; then
+            [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]
+            [[ "$DEPLOY_REF" == "refs/tags/$VERSION" ]]
+            git -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$VERSION"
+            [[ "$(git rev-parse "$VERSION^{commit}")" == "$revision" ]]
+            gh api "repos/$GH_REPO/releases/tags/$VERSION" \
+              --jq '.draft == false and .immutable == true' | grep -qx true
+          else
+            # Manual publication bootstraps the site without creating an application release.
+            [[ "$DEPLOY_REF" == refs/heads/main ]]
+          fi
+          for workflow in ci.yml frontend-audit.yml; do
+            gh api "repos/$GH_REPO/actions/workflows/$workflow/runs?event=push&head_sha=$revision&status=success" \
+              --jq '[.workflow_runs[] | select(.head_branch == "main" and .conclusion == "success")] | length > 0' | grep -qx true
+          done
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Install locked website dependencies
+        working-directory: website
+        run: npm ci
+      - name: Build landing and documentation
+        working-directory: website
+        run: npm run build
+      - name: Record the deployed revision
+        env:
+          DEPLOY_REF: ${{ github.ref }}
+        run: |
+          jq -n --arg commit "$(git rev-parse HEAD)" --arg ref "$DEPLOY_REF" \
+            '{commit: $commit, ref: $ref}' > website/dist/client/deployment.json
+      - name: Validate the Cloudflare deployment
+        working-directory: website
+        run: npm run deploy:check
+      - name: Publish static files to Cloudflare
+        working-directory: website
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WEBSITE_API_TOKEN }}
+        run: |
+          : "${CLOUDFLARE_ACCOUNT_ID:?Missing CLOUDFLARE_ACCOUNT_ID}"
+          : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_WEBSITE_API_TOKEN}"
+          npm run deploy
+      - name: Verify the public deployment
+        run: |
+          curl_options=(--silent --show-error --proto '=https' --connect-timeout 15 --max-time 60)
+          for path in / /docs/ /docs/get-started/installation/ /pagefind/pagefind.js; do
+            curl "${curl_options[@]}" --fail --retry 5 --retry-all-errors "https://arveld.com$path" -o /dev/null
+          done
+          curl "${curl_options[@]}" --fail --retry 5 --retry-all-errors \
+            "https://arveld.com/deployment.json?revision=$GITHUB_SHA" -o deployed.json
+          cmp deployed.json website/dist/client/deployment.json
+          status=$(curl "${curl_options[@]}" -o /dev/null -w '%{http_code}' \
+            "https://arveld.com/__deployment_missing_page__")
+          [[ "$status" == 404 ]]
+          printf 'Published https://arveld.com and https://arveld.com/docs/ from %s.\n' \
+            "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

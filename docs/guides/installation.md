@@ -6,18 +6,21 @@ and report host measurements.
 
 ## Install a release candidate
 
-Linux `amd64` and `arm64` candidates are available from
-[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases). The
-repository and GHCR images are private: use an account with access. Candidates
-are for evaluation; back up state before updates.
+Published Linux `amd64` and `arm64` candidates are listed in
+[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases). If no
+release is listed, use the [source build instructions](../develop/setup.md).
+Downloads from a private repository require an account with access. Candidates
+are for evaluation; back up state before updates. All commands below require
+an actually published version; they do not refer to a pre-existing release.
 
 With GitHub CLI authenticated, download a specific version:
 
 ```sh
 mkdir arveld-install && cd arveld-install
-gh release download v0.1.0-rc.2 --repo RSTCK-Innovation/arveld \
-  --pattern 'arveld-v0.1.0-rc.2_linux_amd64.tar.gz' \
-  --pattern 'arveld-agent-v0.1.0-rc.2_linux_amd64.tar.gz' \
+VERSION=YOUR_PUBLISHED_RELEASE_TAG
+gh release download "$VERSION" --repo RSTCK-Innovation/arveld \
+  --pattern "arveld-${VERSION}_linux_amd64.tar.gz" \
+  --pattern "arveld-agent-${VERSION}_linux_amd64.tar.gz" \
   --pattern SHA256SUMS --pattern compose.yaml
 sha256sum --check --ignore-missing SHA256SUMS
 ```
@@ -36,7 +39,7 @@ docker compose up --detach controller
 
 The downloaded `compose.yaml` selects prebuilt images for that release, with no
 source build. New releases use matching version tags for the controller and
-Agent. Candidates through `v0.1.0-rc.2` use image digests. The release's
+Agent. The release's
 `images.txt` retains the digests for verification.
 Use the same setup, volumes and optional Agent profile described below. Keep
 this installation directory and Compose project name for future updates.
@@ -44,9 +47,9 @@ this installation directory and Compose project name for future updates.
 For native execution, extract the archive you need and check the version:
 
 ```sh
-tar -xzf arveld-v0.1.0-rc.2_linux_amd64.tar.gz
+tar -xzf "arveld-${VERSION}_linux_amd64.tar.gz"
 ./arveld --version
-tar -xzf arveld-agent-v0.1.0-rc.2_linux_amd64.tar.gz
+tar -xzf "arveld-agent-${VERSION}_linux_amd64.tar.gz"
 ./arveld-agent --version
 ```
 
@@ -57,9 +60,8 @@ start. Their checksums are recorded in `components.lock.json` on the release.
 
 ## Install on Linux with the convenience script
 
-Releases after `v0.1.0-rc.2` include `install-arveld.sh` and
-`install-arveld-agent.sh`. Choose a published release containing these files;
-the version below is an example. The scripts support Linux with systemd on
+Choose a published release containing `install-arveld.sh` and
+`install-arveld-agent.sh`. The scripts support Linux with systemd on
 `x86_64` and `aarch64`: Ubuntu, Debian, AlmaLinux, Rocky Linux, Fedora, RHEL,
 CentOS Stream, Oracle Linux, Amazon Linux, openSUSE/SLES and Arch Linux, including
 derivatives declaring one of these families in `/etc/os-release`.
@@ -69,7 +71,7 @@ Archives remain on GitHub Releases. Choose a published release containing the
 installers, then download the versioned script:
 
 ```sh
-VERSION=v0.1.0-rc.3
+VERSION=YOUR_PUBLISHED_RELEASE_TAG
 BASE="https://install.arveld.com/$VERSION"
 curl -fL "$BASE/install-arveld.sh" -o install-arveld.sh
 curl -fL "$BASE/SHA256SUMS" -o SHA256SUMS
@@ -83,9 +85,8 @@ release version. Use the versioned URL above for reproducible installations.
 The corresponding Agent script is `install-arveld-agent.sh` in either location;
 always choose the version matching its controller.
 
-During the transition, the root URLs retain their previously published
-`v0.1.0-rc.3` scripts until the first stable release is promoted. New prereleases
-never update the root URLs; use their exact versioned paths.
+The root URLs become available when the first stable release is promoted.
+Prereleases never update the root URLs; use their exact versioned paths.
 
 The installer detects the host architecture, installs missing prerequisites
 using `apt-get`, `dnf`/`yum`, `zypper` or `pacman`, downloads that exact release's
