@@ -1,0 +1,15 @@
+/* Generated from Arveld web/src/theme.ts. */
+:root {
+	--primary: #314b77;
+	--primary-dark: #253a5d;
+	--background: #f8f7f4;
+	--surface: #faf9f6;
+	--text: #272b33;
+	--muted: #626772;
+	--divider: #e6e3dc;
+	--success: #28704d;
+	--success-light: #86ac96;
+	--error: #b03930;
+	--error-light: #d39187;
+	--warning: #926014;
+}

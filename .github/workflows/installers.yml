@@ -1,0 +1,115 @@
+name: Publish Linux installers
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      promote:
+        default: false
+        type: boolean
+    secrets:
+      CLOUDFLARE_INSTALLERS_API_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published release containing the tested installers (vX.Y.Z or vX.Y.Z-rc.N)
+        required: true
+        type: string
+      promote:
+        description: Also update the root installer URLs (stable releases only)
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+# Serialize publication, including manual recovery, across all release tags.
+concurrency:
+  group: publish-linux-installers
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish scripts to install.arveld.com
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      VERSION: ${{ inputs.version }}
+      ARVELD_INSTALLERS_BUCKET: ${{ vars.ARVELD_INSTALLERS_BUCKET }}
+    steps:
+      - name: Describe installer publication checks and root URL policy
+        env:
+          PROMOTE_INSTALLERS: ${{ inputs.promote }}
+        run: |
+          printf '[PLAN] installer publication — %s\n\n' "$VERSION"
+          cat <<'CHECKS'
+          - Require a published immutable GitHub release and download its two installer scripts and checksums.
+          - Verify shell syntax, embedded version/component and checksums before any upload.
+          - Upload only the two scripts and their filtered checksum file; binaries remain on GitHub.
+          - Download the versioned files over HTTPS, verify checksums and compare the scripts with the original release assets.
+          CHECKS
+          echo
+          if [[ "$PROMOTE_INSTALLERS" == true ]]; then
+            echo 'Root promotion requested: require a stable vX.Y.Z tag and GitHub prerelease=false before updating the root URLs.'
+          else
+            echo 'Versioned publication only: the two root URLs will remain unchanged.'
+          fi
+      - name: Check out publication tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download installers from the published immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PROMOTE_INSTALLERS: ${{ inputs.promote }}
+        run: |
+          printf '[CHECK] Require a published immutable GitHub release for %s.\n' "$VERSION"
+          [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]
+          release=$(gh api "repos/$GH_REPO/releases/tags/$VERSION")
+          jq -e '.draft == false and .immutable == true' <<< "$release" > /dev/null
+          if [[ "$PROMOTE_INSTALLERS" == true ]]; then
+            echo '[CHECK] Require a stable tag and GitHub release status before root promotion.'
+            if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || \
+              ! jq -e '.prerelease == false' <<< "$release" > /dev/null; then
+              echo 'Only a stable GitHub release can update the root installer URLs.' >&2
+              exit 1
+            fi
+          fi
+          echo '[PASS] Release metadata accepted. Downloading the original installer assets.'
+          gh release download "$VERSION" --dir installers \
+            --pattern install-arveld.sh --pattern install-arveld-agent.sh --pattern SHA256SUMS
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: web/package.json
+      - name: Install Wrangler
+        run: bun install --global wrangler@4.142.0
+      - name: Publish only scripts and their checksums
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_INSTALLERS_API_TOKEN }}
+          PROMOTE_INSTALLERS: ${{ inputs.promote }}
+        run: |
+          : "${CLOUDFLARE_ACCOUNT_ID:?Missing CLOUDFLARE_ACCOUNT_ID}"
+          : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_INSTALLERS_API_TOKEN}"
+          sh scripts/publish-installers.sh "$VERSION" installers
+      - name: Verify the public versioned downloads
+        run: |
+          mkdir verification
+          cd verification
+          for file in install-arveld.sh install-arveld-agent.sh SHA256SUMS; do
+            printf '[CHECK] Download https://install.arveld.com/%s/%s without authentication.\n' "$VERSION" "$file"
+            curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+              --retry 5 --retry-all-errors --connect-timeout 15 --max-time 60 \
+              "https://install.arveld.com/$VERSION/$file" -o "$file"
+          done
+          echo '[CHECK] Verify both public script checksums.'
+          sha256sum --check SHA256SUMS
+          echo '[CHECK] Compare public scripts byte-for-byte with the immutable GitHub release assets.'
+          cmp install-arveld.sh ../installers/install-arveld.sh
+          cmp install-arveld-agent.sh ../installers/install-arveld-agent.sh
+          echo '[PASS] Public downloads, checksums and release comparisons passed.'

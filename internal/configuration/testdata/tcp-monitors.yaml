@@ -1,0 +1,34 @@
+receivers:
+  tcp_check/database:
+    collection_interval: 60s
+    targets:
+      - endpoint: db.example.com:5432
+        dialer:
+          timeout: 5s
+  tcp_check/ipv6:
+    collection_interval: 15s
+    targets:
+      - endpoint: "[::1]:443"
+        dialer:
+          timeout: 3s
+processors:
+  resource/monitor_database:
+    attributes:
+      - key: arveld.monitor.id
+        value: database
+        action: upsert
+  resource/monitor_ipv6:
+    attributes:
+      - key: arveld.monitor.id
+        value: ipv6
+        action: upsert
+service:
+  pipelines:
+    metrics/monitor_database:
+      receivers: [tcp_check/database]
+      processors: [resource/agent, resource/monitor_database]
+      exporters: [otlphttp/arveld]
+    metrics/monitor_ipv6:
+      receivers: [tcp_check/ipv6]
+      processors: [resource/agent, resource/monitor_ipv6]
+      exporters: [otlphttp/arveld]

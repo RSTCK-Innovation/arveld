@@ -1,0 +1,30 @@
+.DS_Store
+
+# Go build and test artifacts.
+/arveld
+/bin/
+*.test
+/coverage.out
+__pycache__/
+
+# Local application data.
+/data/
+/arveld.yml
+
+# Local AGENTS.md files.
+AGENTS.md
+
+# Local implementation plans.
+/docs/plans/
+
+# Local environment files.
+.env
+.env.*
+
+# Frontend dependencies, builds, and browser QA output.
+/web/node_modules/
+/web/dist/
+/web/*.tsbuildinfo
+/.playwright-cli/
+/.wrangler/
+/output/

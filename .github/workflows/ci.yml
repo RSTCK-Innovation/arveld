@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  application:
+    name: Application
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Describe application checks
+        run: |
+          cat <<'CHECKS'
+          [PLAN] application checks
+
+          - Validate the linter configuration and Go formatting in the controller and Agent modules.
+          - Run uncached Go behavior tests, then repeat with the data race detector.
+          - Run static lint checks on both Go modules.
+          - Check frontend formatting/lint, Bun tests, TypeScript and the production build.
+
+          Each check has its own step below. A nonzero exit fails the job; no release is published.
+          CHECKS
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            agent/go.sum
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: web/package.json
+      - name: Cache frontend dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('web/bun.lock', 'web/package.json') }}
+          restore-keys: bun-${{ runner.os }}-${{ runner.arch }}-
+      - name: Set up Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.53.1
+      - name: Set up golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.14.0
+          install-only: true
+      - name: Install frontend dependencies
+        run: task web:install
+      - name: Validate the Go linter configuration
+        run: task lint:config
+      - name: Check controller and Agent Go formatting
+        run: task fmt:check
+      - name: Run uncached controller and Agent behavior tests
+        run: task test
+      - name: Run controller and Agent tests with the data race detector
+        run: task test:race
+      - name: Run static lint checks on both Go modules
+        run: task lint
+      - name: Check frontend formatting, tests, types and production build
+        run: task web:check
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Describe documentation checks
+        run: |
+          cat <<'CHECKS'
+          [PLAN] documentation checks
+
+          Install the locked website dependencies, then compile the documentation and its search index.
+          This checks the production build; it does not deploy the website or perform a visual review.
+          CHECKS
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Set up Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.53.1
+      - name: Install documentation dependencies
+        run: task website:install
+      - name: Build documentation website
+        run: task website:build
+
+  packages:
+    name: Packages
+    uses: ./.github/workflows/packages.yml
+    with:
+      version: v0.0.0-rc.0
+
+  installers:
+    name: Linux installers (${{ matrix.image }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['ubuntu:24.04', 'debian:12', 'almalinux:9', 'rockylinux:9', 'fedora:43', 'redhat/ubi9:9.6', 'amazonlinux:2023', 'opensuse/leap:16.0', 'archlinux:base']
+    steps:
+      - name: Explain distribution fixtures and expected rejections
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: |
+          printf '[PLAN] installer checks on %s\n\n' "$IMAGE"
+          cat <<'CHECKS'
+          - Install both components and verify accounts, file permissions and service definitions.
+          - Reinstall and verify that configuration, credentials and identity are preserved.
+          - Intentionally corrupt an archive, remove its checksum and inject an invalid Agent URL; every case must be rejected without changing the working installation.
+
+          These containers use fixture executables reporting `v0.0.0-rc.0` and a simulated systemctl command.
+          `EXPECTED REJECTION` output is intentional. Real binary startup and Agent connectivity are tested in the two native package jobs.
+          CHECKS
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify install, reinstall and failure handling with native distro tools
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: sh tests/installers/run.sh "$IMAGE"
+
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Describe workflow, publication and secret checks
+        run: |
+          cat <<'CHECKS'
+          [PLAN] workflow and publication checks
+
+          - Validate GitHub Actions YAML, expressions and shell commands with Actionlint.
+          - Test the installer upload allowlist, checksums, version/component validation, stable-only root promotion and recovery behavior using a local fake R2 boundary.
+          - Scan the complete Git history with Gitleaks; detected secrets are redacted.
+
+          Publication tests do not contact R2 or publish any artifacts.
+          CHECKS
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Validate workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      - name: Verify installer publication boundaries
+        run: python3 -m unittest discover -v -s tests/installers -p 'test_*.py'
+      - name: Scan history for secrets
+        run: go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner --log-opts="--all"

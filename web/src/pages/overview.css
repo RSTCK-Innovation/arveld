@@ -1,0 +1,53 @@
+.overview-panel-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.overview-panel-row > .MuiPaper-root {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin-bottom: 0;
+}
+
+.overview-panel-row > section > .MuiStack-root:first-child > .MuiBox-root {
+  flex: 1;
+  min-width: 0;
+}
+
+.overview-resource-content {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.overview-agent-footer,
+.overview-alerting > .MuiStack-root,
+.overview-alerting > .MuiTabs-root {
+  flex-shrink: 0;
+}
+
+@media (min-width: 1200px) {
+  .overview-panel-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overview-panel-row > section > .MuiStack-root:first-child {
+    min-height: 108px;
+    box-sizing: border-box;
+    align-items: flex-start;
+  }
+
+  .overview-operations > .MuiPaper-root {
+    height: 560px;
+  }
+
+  .overview-agent-table,
+  .overview-alerting-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-gutter: stable;
+  }
+}

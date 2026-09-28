@@ -1,0 +1,12 @@
+title = "Arveld secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Literal PagerDuty test/example key and RFC 6455 WebSocket sample nonce"
+regexTarget = "secret"
+regexes = [
+  '''^0123456789abcdef0123456789abcdef$''',
+  '''^dGhlIHNhbXBsZSBub25jZQ==$''',
+]

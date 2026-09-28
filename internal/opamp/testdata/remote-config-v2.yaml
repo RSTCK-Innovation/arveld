@@ -1,0 +1,22 @@
+receivers:
+  nop:
+
+processors:
+  resource:
+    attributes:
+      - key: arveld.diagnostic.version
+        value: "v2"
+        action: upsert
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - nop
+      processors:
+        - resource
+      exporters:
+        - nop

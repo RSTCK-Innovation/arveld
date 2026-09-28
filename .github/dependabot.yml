@@ -1,0 +1,56 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: cron
+      cronjob: '17 7 1,16 * *'
+      timezone: Europe/Paris
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: cron
+      cronjob: '27 7 1,16 * *'
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    groups:
+      compatible:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: gomod
+    directory: /agent
+    schedule:
+      interval: cron
+      cronjob: '37 7 1,16 * *'
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    # Supervisor/extension v0.161.0 require opamp-go v0.23.0. Revisit this
+    # version-update constraint when upstream adopts the newer OpAMP API.
+    ignore:
+      - dependency-name: github.com/open-telemetry/opamp-go
+        update-types: ['version-update:semver-minor', 'version-update:semver-major']
+    groups:
+      compatible:
+        patterns: ['*']
+        update-types: [minor, patch]
+  # Bun lockfile v2 is audited by frontend-audit.yml; dependency-updates.yml
+  # reports available frontend versions until the hosted updater supports it.
+  - package-ecosystem: npm
+    directory: /website
+    schedule:
+      interval: cron
+      cronjob: '47 7 1,16 * *'
+      timezone: Europe/Paris
+    groups:
+      compatible:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: docker
+    directories: ['/', '/agent']
+    schedule:
+      interval: cron
+      cronjob: '57 7 1,16 * *'
+      timezone: Europe/Paris

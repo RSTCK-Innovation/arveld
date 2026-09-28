@@ -1,0 +1,40 @@
+# Local installation from source. Public release images are not available yet.
+services:
+  controller:
+    image: arveld:dev
+    build: .
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:${ARVELD_HTTP_PORT:-8080}:8080"
+    volumes:
+      - arveld-data:/var/lib/arveld
+    configs:
+      - source: controller-config
+        target: /etc/arveld/arveld.yml
+
+  agent:
+    image: arveld-agent:0.161.0-arveld
+    build: ./agent
+    profiles: [agent]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      - controller
+    environment:
+      - ARVELD_URL=http://controller:8080
+      - ARVELD_AGENT_TOKEN
+    volumes:
+      - arveld-agent-data:/var/lib/arveld-agent
+      - /:/hostfs:ro
+
+configs:
+  controller-config:
+    content: |
+      http_address: 0.0.0.0:8080
+      database_path: /var/lib/arveld/arveld.db
+      session_cookie_secure: ${ARVELD_SESSION_COOKIE_SECURE:-false}
+
+volumes:
+  arveld-data:
+  arveld-agent-data:

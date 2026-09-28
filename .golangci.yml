@@ -1,0 +1,128 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  relative-path-mode: gomod
+  modules-download-mode: readonly
+
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gocognit
+    - gocritic
+    - godoclint
+    - gosec
+    - govet
+    - iface
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - intrange
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - modernize
+    - musttag
+    - nakedret
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - perfsprint
+    - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - sloglint
+    - sqlclosecheck
+    - staticcheck
+    - tagalign
+    - testableexamples
+    - thelper
+    - unconvert
+    - unparam
+    - unqueryvet
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+    - wrapcheck
+  settings:
+    cyclop:
+      max-complexity: 20
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocognit:
+      min-complexity: 25
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+        - shadow
+    nolintlint:
+      allow-unused: false
+      require-explanation: true
+      require-specific: true
+    sloglint:
+      no-global: all
+      context: scope
+      static-msg: true
+      msg-style: lowercased
+      key-naming-case: snake
+  exclusions:
+    generated: strict
+    warn-unused: true
+    rules:
+      # Integration tests are intentionally linear scenarios with many
+      # assertions; production complexity limits do not improve them.
+      - path: _test\.go
+        linters:
+          - cyclop
+          - gocognit
+      # The OpAMP logger interface supplies printf-style messages, so this
+      # adapter cannot use compile-time string literals.
+      - path: internal/opamp/logger\.go
+        text: message should be a string literal or a constant
+        linters:
+          - sloglint
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/RSTCK-Innovation/arveld
+  exclusions:
+    generated: strict
+    warn-unused: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

@@ -1,0 +1,4 @@
+# Container defaults; keep secure cookies when serving through an HTTPS proxy.
+http_address: 0.0.0.0:8080
+database_path: /var/lib/arveld/arveld.db
+session_cookie_secure: true

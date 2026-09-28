@@ -1,0 +1,64 @@
+receivers:
+  hostmetrics:
+    root_path: /hostfs
+    collection_interval: 15s
+    scrapers:
+      cpu:
+        metrics:
+          system.cpu.time:
+            attributes: [cpu, state]
+          system.cpu.logical.count:
+            enabled: false
+      memory:
+        metrics:
+          system.memory.usage:
+            enabled: false
+          system.memory.limit:
+            enabled: true
+          system.linux.memory.available:
+            enabled: true
+      filesystem:
+        metrics:
+          system.filesystem.usage:
+            enabled: true
+          system.filesystem.inodes.usage:
+            enabled: false
+      network:
+        metrics:
+          system.network.io:
+            enabled: true
+          system.network.packets:
+            enabled: true
+          system.network.errors:
+            enabled: true
+          system.network.dropped:
+            enabled: true
+          system.network.connections:
+            enabled: false
+      system:
+        metrics:
+          system.uptime:
+            enabled: true
+
+processors:
+  resource/agent:
+    attributes:
+      - key: service.name
+        value: arveld-agent
+        action: upsert
+      - key: service.instance.id
+        value: "12000000-0000-0000-0000-0000000000ab"
+        action: upsert
+
+exporters:
+  otlphttp/arveld:
+    endpoint: "${env:ARVELD_URL}/v1/otlp"
+    headers:
+      Authorization: "Bearer ${env:ARVELD_AGENT_TOKEN}"
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resource/agent]
+      exporters: [otlphttp/arveld]

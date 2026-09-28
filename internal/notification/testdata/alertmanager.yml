@@ -1,0 +1,29 @@
+route:
+    receiver: arveld
+    group_by:
+        - arveld_rule_id
+        - arveld_rule_revision
+    group_wait: 5s
+    group_interval: 30s
+    repeat_interval: 4h
+    routes:
+        - receiver: arveld-channel-alpha
+          matchers:
+            - arveld_rule_id="rule"
+          continue: true
+        - receiver: arveld-channel-alpha
+          matchers:
+            - arveld_rule_id="rule-two"
+          continue: true
+        - receiver: arveld-channel-zulu
+          matchers:
+            - arveld_rule_id="rule"
+          continue: true
+receivers:
+    - name: arveld
+    - name: arveld-channel-alpha
+      webhook_configs:
+        - url: https://hooks.example.com/alpha?token=test-only&label=%22ops%22
+    - name: arveld-channel-zulu
+      webhook_configs:
+        - url: https://hooks.example.com/zulu?token=test-only&label=%22ops%22

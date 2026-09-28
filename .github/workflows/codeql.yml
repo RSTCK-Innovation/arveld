@@ -1,0 +1,99 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '27 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  availability:
+    name: Explain why CodeQL analysis is skipped
+    if: github.event.repository.private == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Report that no CodeQL security analysis ran
+        run: |
+          cat <<'CHECKS'
+          [SKIP] CodeQL analysis
+
+          This repository is private. The workflow intentionally disables CodeQL analysis on private repositories to avoid enabling a paid Code Security subscription implicitly.
+          No Go or JavaScript/TypeScript CodeQL analysis ran. This explanatory job succeeding is not a security scan result.
+          CHECKS
+
+  analyze:
+    # GitHub Team includes CodeQL for public repositories. Do not enable a paid
+    # private Code Security subscription implicitly.
+    if: github.event.repository.private == false
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Describe CodeQL analysis
+        env:
+          LANGUAGE: ${{ matrix.language }}
+        run: |
+          printf '[PLAN] CodeQL analysis — %s\n\n' "$LANGUAGE"
+          cat <<'CHECKS'
+          Analyze source code with the security-extended query suite and upload findings to GitHub code scanning.
+          Go analysis builds both modules with the embedded frontend; JavaScript/TypeScript analysis does not require a build.
+          Findings are reported in code scanning. This workflow does not run application behavior tests or audit dependency advisories.
+          CHECKS
+      - name: Check out source for security analysis
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Go for controller and Agent extraction
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        if: matrix.language == 'go'
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            agent/go.sum
+      - name: Set up Bun for the embedded frontend
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        if: matrix.language == 'go'
+        with:
+          bun-version-file: web/package.json
+      - name: Build embedded frontend
+        if: matrix.language == 'go'
+        working-directory: web
+        run: bun install --frozen-lockfile && bun run build
+      - name: Initialize the security-extended query suite
+        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+      - name: Build both Go modules
+        if: matrix.language == 'go'
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          go build ./...
+          cd agent
+          go build -tags=grpcnotrace ./...
+      - name: Analyze source code and upload security findings
+        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          category: /language:${{ matrix.language }}

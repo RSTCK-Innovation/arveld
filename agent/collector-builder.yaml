@@ -1,0 +1,30 @@
+# Only components used by Arveld configurations and Supervisor diagnostics.
+dist:
+  module: github.com/RSTCK-Innovation/arveld/agent
+  name: arveld-agent
+  description: Arveld Agent
+  version: 0.161.0-arveld
+  output_path: ./_build
+  build_tags: "grpcnotrace"
+
+extensions:
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/opampextension v0.161.0
+
+receivers:
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.161.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/httpcheckreceiver v0.161.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcpcheckreceiver v0.161.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/icmpcheckreceiver v0.161.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dnscheckreceiver v0.161.0
+  - gomod: go.opentelemetry.io/collector/receiver/nopreceiver v0.161.0
+
+processors:
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.161.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/otlphttpexporter v0.161.0
+  - gomod: go.opentelemetry.io/collector/exporter/nopexporter v0.161.0
+
+providers:
+  - gomod: go.opentelemetry.io/collector/confmap/provider/envprovider v1.67.0
+  - gomod: go.opentelemetry.io/collector/confmap/provider/fileprovider v1.67.0

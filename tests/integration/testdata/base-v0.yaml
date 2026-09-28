@@ -1,0 +1,27 @@
+# Historical fixture for the base reconciliation journey.
+receivers:
+  hostmetrics:
+    root_path: /hostfs
+    collection_interval: 30s
+    scrapers:
+      cpu: {}
+processors:
+  resource/agent:
+    attributes:
+      - key: service.name
+        value: arveld-agent
+        action: upsert
+      - key: service.instance.id
+        value: "12000000-0000-0000-0000-0000000000ab"
+        action: upsert
+exporters:
+  otlphttp/arveld:
+    endpoint: "${env:ARVELD_URL}/v1/otlp"
+    headers:
+      Authorization: "Bearer ${env:ARVELD_AGENT_TOKEN}"
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resource/agent]
+      exporters: [otlphttp/arveld]

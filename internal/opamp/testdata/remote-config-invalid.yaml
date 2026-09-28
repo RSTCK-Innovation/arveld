@@ -1,0 +1,13 @@
+receivers:
+  arveld_invalid:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - arveld_invalid
+      exporters:
+        - nop

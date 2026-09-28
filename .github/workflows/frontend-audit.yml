@@ -1,0 +1,39 @@
+name: Frontend dependency audit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '43 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Frontend dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Describe vulnerability audit scope and failure threshold
+        run: |
+          cat <<'CHECKS'
+          [PLAN] frontend vulnerability audit
+
+          Audit the packages recorded in web/bun.lock without modifying dependencies.
+          High or critical advisories fail this job. This checks known vulnerabilities, not whether every dependency is on its newest version.
+          CHECKS
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the project's Bun version
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: web/package.json
+      - name: Reject high or critical advisories in the frontend lockfile
+        working-directory: web
+        run: bun audit --audit-level=high

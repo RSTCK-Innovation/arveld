@@ -1,0 +1,106 @@
+@import "../brand.css";
+@font-face {
+	font-family: "Inter Variable";
+	src: url("/fonts/inter.woff2") format("woff2");
+	font-weight: 100 900;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Manrope Variable";
+	src: url("/fonts/manrope.woff2") format("woff2");
+	font-weight: 200 800;
+	font-display: swap;
+}
+:root,
+:root[data-theme="light"] {
+	--sl-font: "Inter Variable", sans-serif;
+	--sl-color-white: var(--text);
+	--sl-color-gray-1: var(--text);
+	--sl-color-gray-2: var(--text);
+	--sl-color-gray-3: var(--muted);
+	--sl-color-gray-4: var(--muted);
+	--sl-color-gray-5: var(--divider);
+	--sl-color-gray-6: var(--surface);
+	--sl-color-gray-7: var(--background);
+	--sl-color-black: var(--background);
+	--sl-color-accent: var(--primary);
+	--sl-color-accent-high: var(--primary-dark);
+	--sl-color-accent-low: color-mix(
+		in srgb,
+		var(--primary) 8%,
+		var(--background)
+	);
+	--sl-color-text: var(--text);
+	--sl-color-text-accent: var(--primary);
+	--sl-color-text-invert: var(--surface);
+	--sl-color-bg: var(--background);
+	--sl-color-bg-nav: var(--background);
+	--sl-color-bg-sidebar: var(--background);
+	--sl-color-bg-inline-code: var(--surface);
+	--sl-color-bg-accent: var(--primary);
+	--sl-color-hairline: var(--divider);
+	--sl-color-hairline-light: var(--divider);
+	--sl-color-hairline-shade: var(--divider);
+	--sl-content-width: 47rem;
+	--sl-sidebar-width: 18rem;
+	--sl-text-h1: 2.4rem;
+	--sl-text-h2: 1.65rem;
+	--sl-text-h3: 1.25rem;
+	--sl-line-height: 1.75;
+	--sl-shadow-sm: none;
+	--sl-shadow-md: none;
+	font-synthesis: none;
+	-webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3,
+h4 {
+	font-family: "Manrope Variable", sans-serif;
+	font-weight: 650;
+	letter-spacing: -0.035em;
+}
+.sl-markdown-content a {
+	text-underline-offset: 0.2em;
+}
+.sl-markdown-content img {
+	border: 1px solid var(--divider);
+	border-radius: 10px;
+}
+.sl-markdown-content table {
+	font-size: 0.875rem;
+}
+.sl-markdown-content th {
+	background: var(--surface);
+}
+.sl-markdown-content code:not(pre code) {
+	border: 1px solid var(--divider);
+	border-radius: 4px;
+	overflow-wrap: anywhere;
+}
+.sidebar-content a[aria-current="page"] {
+	background: var(--sl-color-accent-low);
+	color: var(--primary);
+	font-weight: 600;
+}
+.pagination-links a {
+	box-shadow: none;
+	border-color: var(--divider);
+	border-radius: 10px;
+}
+.pagination-links a:hover {
+	border-color: var(--primary);
+}
+:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 4px;
+}
+::selection {
+	color: var(--surface);
+	background: var(--primary);
+}
+@media (max-width: 50rem) {
+	:root {
+		--sl-text-h1: 2rem;
+	}
+}

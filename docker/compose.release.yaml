@@ -1,0 +1,38 @@
+# Release installation. Download the generated compose.yaml with release image tags.
+services:
+  controller:
+    image: ${ARVELD_CONTROLLER_IMAGE:?Set the released controller image}
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:${ARVELD_HTTP_PORT:-8080}:8080"
+    volumes:
+      - arveld-data:/var/lib/arveld
+    configs:
+      - source: controller-config
+        target: /etc/arveld/arveld.yml
+
+  agent:
+    image: ${ARVELD_AGENT_IMAGE:?Set the released Agent image}
+    profiles: [agent]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      - controller
+    environment:
+      - ARVELD_URL=http://controller:8080
+      - ARVELD_AGENT_TOKEN
+    volumes:
+      - arveld-agent-data:/var/lib/arveld-agent
+      - /:/hostfs:ro
+
+configs:
+  controller-config:
+    content: |
+      http_address: 0.0.0.0:8080
+      database_path: /var/lib/arveld/arveld.db
+      session_cookie_secure: ${ARVELD_SESSION_COOKIE_SECURE:-false}
+
+volumes:
+  arveld-data:
+  arveld-agent-data:

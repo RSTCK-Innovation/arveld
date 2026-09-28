@@ -1,0 +1,16 @@
+receivers:
+  nop:
+
+exporters:
+  otlphttp:
+    endpoint: https://127.0.0.1:4318
+    tls:
+      ca_file: /proc/arveld-missing-ca.pem
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - nop
+      exporters:
+        - otlphttp

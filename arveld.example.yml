@@ -1,0 +1,11 @@
+# Network address exposed by the Arveld HTTP server.
+http_address: 127.0.0.1:8080
+
+# SQLite control-plane database.
+database_path: data/arveld.db
+
+# Arveld installs and supervises its pinned Prometheus and Alertmanager.
+# Prometheus retention durations support y, w, d, h, m, s, and ms.
+# Sizes support B, KB, MB, GB, TB, PB, and EB; leave size empty to disable it.
+prometheus_retention_time: 15d
+prometheus_retention_size: ""

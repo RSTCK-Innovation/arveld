@@ -1,0 +1,159 @@
+name: Prerelease
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prerelease-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    name: Validate signed release tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Describe release admission checks
+        run: |
+          cat <<'CHECKS'
+          [PLAN] release admission checks
+
+          - Require a vX.Y.Z-rc.N tag with a trusted SSH signature.
+          - Require its commit to belong to main.
+          - Require successful main push runs of CI and Frontend dependency audit for that exact commit.
+
+          Packaging and publication cannot start unless all admission checks pass.
+          CHECKS
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a signed release candidate from validated main
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          echo '[CHECK] Require a release-candidate tag rather than a branch or CI fixture version.'
+          [[ "$REF_TYPE" == tag && "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]
+          printf '[CHECK] Verify the trusted SSH signature on %s.\n' "$VERSION"
+          git -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$VERSION"
+          revision=$(git rev-parse "$VERSION^{commit}")
+          printf '[CHECK] Require commit %s to belong to main.\n' "$revision"
+          git merge-base --is-ancestor "$revision" origin/main
+          for workflow in ci.yml frontend-audit.yml; do
+            printf '[CHECK] Require a successful main push run of %s for %s.\n' "$workflow" "$revision"
+            gh api "repos/$GH_REPO/actions/workflows/$workflow/runs?event=push&head_sha=$revision&status=success" \
+              --jq '[.workflow_runs[] | select(.head_branch == "main" and .conclusion == "success")] | length > 0' | grep -qx true
+          done
+          echo '[PASS] Tag signature, main ancestry and exact-commit checks passed.'
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  packages:
+    name: Packages
+    needs: validate
+    uses: ./.github/workflows/packages.yml
+    with:
+      version: ${{ needs.validate.outputs.version }}
+
+  publish:
+    name: Publish tested prerelease
+    needs: [validate, packages]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # Only this job can publish. It downloads artifacts from this workflow run.
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Describe publication operations and provenance limits
+        run: |
+          printf '[PLAN] publication — %s\n\n' "$VERSION"
+          cat <<'CHECKS'
+          - Download only the packages and images tested in this workflow run; do not rebuild them.
+          - Refuse an existing GitHub release before pushing image tags.
+          - Publish multi-architecture GHCR images and generate release metadata and SHA256SUMS.
+          - Create a draft release, upload every asset, then publish the immutable prerelease.
+
+          Build attestations run only on public repositories. Skipped attestation steps on a private repository do not claim verified provenance.
+          A separate installer job publishes versioned R2 scripts with root promotion disabled.
+          CHECKS
+      - name: Check out release metadata
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download tested packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Publish tested images and prepare release files
+        id: images
+        run: scripts/publish-images.sh
+      - name: Attest release files on public repositories
+        if: github.event.repository.private == false
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: release/assets/*
+      - name: Attest controller image on public repositories
+        if: github.event.repository.private == false
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.images.outputs.controller_name }}
+          subject-digest: ${{ steps.images.outputs.controller_digest }}
+          push-to-registry: true
+      - name: Attest Agent image on public repositories
+        if: github.event.repository.private == false
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.images.outputs.agent_name }}
+          subject-digest: ${{ steps.images.outputs.agent_digest }}
+          push-to-registry: true
+      - name: Publish immutable prerelease after uploading all files
+        run: |
+          gh release create "$VERSION" --verify-tag --draft --prerelease --latest=false \
+            --title "Arveld $VERSION" --notes-file .github/release-notes.md
+          gh release upload "$VERSION" release/assets/*
+          gh release edit "$VERSION" --draft=false
+
+  installers:
+    name: Linux installer hosting
+    needs: [validate, publish]
+    uses: ./.github/workflows/installers.yml
+    with:
+      version: ${{ needs.validate.outputs.version }}
+      promote: false
+    secrets:
+      CLOUDFLARE_INSTALLERS_API_TOKEN: ${{ secrets.CLOUDFLARE_INSTALLERS_API_TOKEN }}

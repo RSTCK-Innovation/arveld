@@ -1,0 +1,283 @@
+version: "3"
+
+vars:
+  ARVELD_BINARY: "{{.ROOT_DIR}}/bin/arveld"
+  AGENT_IMAGE: arveld-agent:0.161.0-arveld
+
+tasks:
+  default:
+    desc: List the available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  clean:
+    desc: Remove generated build outputs
+    cmds:
+      - rm -rf bin
+
+  reset:
+    desc: Irreversibly remove build outputs and all local controller state
+    prompt: This permanently deletes bin/ and data/. Continue?
+    cmds:
+      - rm -rf bin data
+
+  fmt:
+    desc: Format Go files and organize imports
+    cmds:
+      - golangci-lint fmt
+      - task: agent:fmt
+
+  fmt:check:
+    desc: Check formatting without modifying files
+    cmds:
+      - golangci-lint fmt --diff
+      - task: agent:fmt:check
+
+  test:
+    desc: Run all tests without cgo or cached results
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go test -count=1 ./...
+      - task: agent:test
+
+  test:modules:
+    desc: Run module contracts and local CLI tests without cached results
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go test -count=1 ./internal/... ./cmd/...
+      - task: agent:test
+
+  test:integration:
+    desc: Run application journeys through real stores, controllers, protocols, and CLI
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go test -count=1 ./tests/integration/...
+
+  test:race:
+    desc: Run all tests with the race detector and without cached results
+    deps: [web:build]
+    cmds:
+      # The race detector still requires cgo on non-Darwin platforms.
+      - CGO_ENABLED=1 go test -count=1 -race ./...
+      - task: agent:test:race
+
+  test:agent:
+    desc: Validate configurations and exercise the real Supervisor with the local Agent image
+    deps: [web:build]
+    cmds:
+      - task: agent:test:docker
+      - CGO_ENABLED=0 go test -count=1 -tags=docker ./internal/configuration ./tests/integration -run 'TestConfigurationValidatesWithCollector|TestSupervisorAppliesCompiledMonitorAndRecoversLocally|TestSupervisorExecutesNetworkMonitors|TestSupervisorAppliesMonitorLifecycle'
+
+  lint:config:
+    desc: Validate the golangci-lint configuration
+    cmds:
+      - golangci-lint config verify
+
+  lint:
+    desc: Run golangci-lint
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 golangci-lint run ./...
+      - task: agent:lint
+
+  check:
+    desc: Run every Go and frontend verification in sequence
+    cmds:
+      - task: lint:config
+      - task: fmt:check
+      - task: test
+      - task: test:race
+      - task: lint
+      - task: web:check
+
+  web:install:
+    desc: Install locked frontend dependencies with Bun 1.4.2
+    dir: web
+    cmds:
+      - bun install --frozen-lockfile
+
+  web:dev:
+    desc: Run the frontend with the controller API proxy at http://127.0.0.1:5173
+    dir: web
+    cmds:
+      - bun run dev
+
+  web:build:
+    desc: Type-check and build the frontend
+    run: once
+    dir: web
+    cmds:
+      - bun run build
+
+  web:check:
+    desc: Check the frontend with Biome, tests, TypeScript, and a production build
+    dir: web
+    cmds:
+      - bun run check
+
+  website:install:
+    desc: Install locked documentation website dependencies
+    dir: website
+    cmds:
+      - npm ci
+
+  website:build:
+    desc: Build the documentation website
+    dir: website
+    cmds:
+      - npm run build
+
+  pre-commit:
+    desc: Run the fast checks required before a commit
+    cmds:
+      - task: fmt:check
+      - task: lint
+
+  hooks:install:
+    desc: Configure Git to use the versioned hooks
+    cmds:
+      - git config --local core.hooksPath .githooks
+
+  tidy:
+    desc: Synchronize go.mod and go.sum with the imported packages
+    cmds:
+      - go mod tidy
+      - task: agent:tidy
+
+  build:
+    desc: Build the Arveld executable with its embedded frontend
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go build -o "{{.ARVELD_BINARY}}" ./cmd/arveld
+
+  controller:build:
+    desc: Build the Docker controller image with its embedded frontend
+    cmds:
+      - docker compose build controller
+
+  package:linux:
+    desc: Build local Docker images and export controller and Agent binaries for Linux amd64 and arm64
+    cmds:
+      - task: controller:build
+      - task: agent:build
+      - for: [amd64, arm64]
+        cmd: docker build --platform linux/{{.ITEM}} --target binary --output type=local,dest=bin/linux-{{.ITEM}} .
+      - for: [amd64, arm64]
+        cmd: docker build --platform linux/{{.ITEM}} --target binary --output type=local,dest=bin/linux-{{.ITEM}} agent
+
+  test:controller:docker:
+    desc: Verify the Compose controller and Agent, real measurements and persistence across recreation
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go test -count=1 -tags=docker ./tests/integration -run '^TestControllerComposePreservesDataAcrossRecreation$'
+
+  test:installers:
+    desc: Verify Linux installers in a disposable distribution container
+    vars:
+      DISTRO: '{{default "ubuntu:24.04" .DISTRO}}'
+    cmds:
+      - sh tests/installers/run.sh '{{.DISTRO}}'
+
+  components:manifest:update:
+    desc: Update the component lock manifest for Prometheus and Alertmanager
+    requires:
+      vars: [PROMETHEUS_VERSION, ALERTMANAGER_VERSION]
+    cmds:
+      - >-
+        ./scripts/update-components-lock.sh
+        "{{.PROMETHEUS_VERSION}}"
+        "{{.ALERTMANAGER_VERSION}}"
+
+  run:
+    desc: Run Arveld, optionally with CONFIG_FILE=/path/to/arveld.yml
+    deps: [build]
+    cmds:
+      - >-
+        "{{.ARVELD_BINARY}}"
+        {{if .CONFIG_FILE}}--config "{{.CONFIG_FILE}}"{{end}}
+
+  agent:build:
+    desc: Build the Docker agent image
+    cmds:
+      - >-
+        docker build
+        --tag "{{.AGENT_IMAGE}}"
+        "{{.ROOT_DIR}}/agent"
+
+  agent:binary:
+    desc: Build the standalone Agent executable
+    dir: agent
+    cmds:
+      - CGO_ENABLED=0 go build -trimpath -buildvcs=false -tags=grpcnotrace -o "{{.ROOT_DIR}}/bin/arveld-agent" ./cmd/arveld-agent
+
+  agent:fmt:
+    desc: Format the Agent module
+    dir: agent
+    cmds:
+      - golangci-lint fmt --config ../.golangci.yml
+
+  agent:fmt:check:
+    desc: Check the Agent module formatting
+    dir: agent
+    cmds:
+      - golangci-lint fmt --config ../.golangci.yml --diff
+
+  agent:test:
+    desc: Run Agent module and standalone executable tests
+    dir: agent
+    cmds:
+      - CGO_ENABLED=0 go test -tags=grpcnotrace -count=1 ./...
+
+  agent:test:race:
+    desc: Run Agent tests with the race detector
+    dir: agent
+    cmds:
+      - CGO_ENABLED=1 go test -tags=grpcnotrace -count=1 -race ./...
+
+  agent:test:docker:
+    desc: Verify the Docker Agent inventory and startup
+    dir: agent
+    cmds:
+      - CGO_ENABLED=0 go test -tags=docker,grpcnotrace -count=1 . -run 'TestAgentDistribution|TestAgentRequestsOpAMPWithEnvironment'
+
+  agent:lint:
+    desc: Lint the Agent module
+    dir: agent
+    cmds:
+      - CGO_ENABLED=0 golangci-lint run --config ../.golangci.yml --build-tags grpcnotrace ./...
+
+  agent:tidy:
+    desc: Synchronize the Agent module dependencies
+    dir: agent
+    cmds:
+      - go mod tidy
+
+  agent:generate:
+    desc: Regenerate the standalone Collector inventory from the Agent manifest
+    dir: agent
+    cmds:
+      - >-
+        go run go.opentelemetry.io/collector/cmd/builder@v0.161.0
+        --config=collector-builder.yaml
+        --skip-compilation --skip-get-modules
+      - cp _build/components.go cmd/arveld-agent/components.go
+
+  agent:run:
+    desc: Run the Docker agent with its token and Arveld URL
+    requires:
+      vars: [ARVELD_AGENT_TOKEN, ARVELD_URL]
+    env:
+      ARVELD_AGENT_TOKEN: "{{.ARVELD_AGENT_TOKEN}}"
+      ARVELD_URL: "{{.ARVELD_URL}}"
+    deps: [agent:build]
+    cmds:
+      - >-
+        docker run --rm
+        --name arveld-agent
+        --add-host host.docker.internal:host-gateway
+        --env ARVELD_AGENT_TOKEN
+        --env ARVELD_URL
+        --volume arveld-agent-data:/var/lib/arveld-agent
+        --volume /:/hostfs:ro
+        "{{.AGENT_IMAGE}}"

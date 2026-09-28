@@ -1,0 +1,79 @@
+name: Dependency update report
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/dependency-updates.yml
+      - scripts/check-component-updates.sh
+      - internal/components/components.lock.json
+      - web/package.json
+      - web/bun.lock
+  schedule:
+    - cron: '43 6 1,16 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-update-report-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  report:
+    name: Check managed components and frontend versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Describe the dependency update report
+        run: |
+          cat <<'CHECKS'
+          [PLAN] dependency version report
+
+          Compare pinned Prometheus and Alertmanager versions with their official stable releases, then list available frontend updates.
+          Newer versions are informational: this job does not update files, open pull requests or replace the separate vulnerability audit.
+          Network/tool failures or unintended lockfile changes still fail the job.
+          CHECKS
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Compare pinned Prometheus and Alertmanager versions with stable releases
+        run: scripts/check-component-updates.sh > "$RUNNER_TEMP/dependency-updates.md"
+      - name: Set up the project's Bun version
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: web/package.json
+      - name: Check frontend versions without changing the lockfile
+        working-directory: web
+        env:
+          NO_COLOR: '1'
+        run: |
+          bun outdated --no-progress --no-cache > "$RUNNER_TEMP/frontend-outdated.txt"
+          {
+            echo
+            echo '## Frontend libraries'
+            echo
+            echo 'Current is the locked version, Update satisfies package.json, and Latest may require a breaking change. An empty table means no newer versions were reported.'
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/frontend-outdated.txt"
+            echo '```'
+            echo
+            echo 'Version updates require a reviewed PR using the pinned Bun version. The separate Frontend dependency audit check continues to block high/critical advisories.'
+          } >> "$RUNNER_TEMP/dependency-updates.md"
+          git diff --exit-code -- package.json bun.lock
+      - name: Publish the report in the run summary
+        run: tee -a "$GITHUB_STEP_SUMMARY" < "$RUNNER_TEMP/dependency-updates.md"
+      - name: Save the report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dependency-update-report
+          path: ${{ runner.temp }}/dependency-updates.md
+          retention-days: 45
+          if-no-files-found: error

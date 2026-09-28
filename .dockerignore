@@ -1,0 +1,24 @@
+# Include only the controller's build inputs.
+*
+!LICENSE
+!NOTICE
+!go.mod
+!go.sum
+!cmd/
+!cmd/**
+!internal/
+!internal/**
+!web/
+!web/**
+!docker/
+!docker/arveld.yml
+!scripts/
+!scripts/install-linux.sh
+**/*_test.go
+**/testdata/
+**/AGENTS.md
+**/.env
+**/.env.*
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo

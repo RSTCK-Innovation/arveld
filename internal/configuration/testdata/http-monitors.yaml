@@ -1,0 +1,54 @@
+receivers:
+  http_check/homepage:
+    collection_interval: 60s
+    metrics:
+      httpcheck.dns.lookup.duration: {enabled: true}
+      httpcheck.client.connection.duration: {enabled: true}
+      httpcheck.tls.handshake.duration: {enabled: true}
+      httpcheck.client.request.duration: {enabled: true}
+      httpcheck.response.duration: {enabled: true}
+      httpcheck.response.size: {enabled: true}
+      httpcheck.tls.cert_remaining: {enabled: true}
+      httpcheck.validation.passed: {enabled: true}
+      httpcheck.validation.failed: {enabled: true}
+    targets:
+      - endpoint: https://example.com/health?literal=$${env:TOKEN}&price=$$$$
+        method: GET
+        timeout: 5s
+  http_check/status:
+    collection_interval: 15s
+    metrics:
+      httpcheck.dns.lookup.duration: {enabled: true}
+      httpcheck.client.connection.duration: {enabled: true}
+      httpcheck.tls.handshake.duration: {enabled: true}
+      httpcheck.client.request.duration: {enabled: true}
+      httpcheck.response.duration: {enabled: true}
+      httpcheck.response.size: {enabled: true}
+      httpcheck.tls.cert_remaining: {enabled: true}
+      httpcheck.validation.passed: {enabled: true}
+      httpcheck.validation.failed: {enabled: true}
+    targets:
+      - endpoint: http://example.net/status
+        method: HEAD
+        timeout: 3s
+processors:
+  resource/monitor_homepage:
+    attributes:
+      - key: arveld.monitor.id
+        value: homepage
+        action: upsert
+  resource/monitor_status:
+    attributes:
+      - key: arveld.monitor.id
+        value: status
+        action: upsert
+service:
+  pipelines:
+    metrics/monitor_homepage:
+      receivers: [http_check/homepage]
+      processors: [resource/agent, resource/monitor_homepage]
+      exporters: [otlphttp/arveld]
+    metrics/monitor_status:
+      receivers: [http_check/status]
+      processors: [resource/agent, resource/monitor_status]
+      exporters: [otlphttp/arveld]
