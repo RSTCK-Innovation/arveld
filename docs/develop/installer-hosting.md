@@ -15,19 +15,15 @@ and their release metadata remain on GitHub/GHCR.
 | `/install-arveld.sh` | Most recently promoted stable controller installer | `no-store` |
 | `/install-arveld-agent.sh` | Most recently promoted stable Agent installer | `no-store` |
 
-`VERSION` is a release tag such as `v0.1.0-rc.3`. The root URLs are conveniences
+`VERSION` is an actually published release tag. The root URLs are conveniences
 and change only when a stable release is promoted. Prereleases publish only
 their versioned paths. Every script embeds its own exact version; use versioned
 paths when installing an Agent to match an
 existing controller. There is no bucket listing or installer at `/`.
 
-### Transition to stable-only root URLs
-
-The root URLs were initially promoted to `v0.1.0-rc.3`. Keep those existing
-objects until the first stable release is promoted; later prereleases must not
-replace them. This is a temporary legacy value, not an exception allowing new
-prerelease promotions. Unversioned bootstrap scripts must not be published to
-the root or to versioned paths.
+The root URLs become available with the first promoted stable release.
+Prereleases must not create or replace them. Unversioned bootstrap scripts
+must not be published to the root or to versioned paths.
 
 ## Cloudflare setup
 
@@ -90,7 +86,7 @@ job; do not rebuild or republish the release. Once this workflow is on `main`,
 run:
 
 ```sh
-gh workflow run installers.yml --ref main -f version=v0.1.0-rc.3 -f promote=false
+gh workflow run installers.yml --ref main -f version=YOUR_PUBLISHED_RELEASE_TAG -f promote=false
 ```
 
 The default recovery leaves the root URLs unchanged, so replaying an old release

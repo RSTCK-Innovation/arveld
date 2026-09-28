@@ -157,3 +157,15 @@ jobs:
       promote: false
     secrets:
       CLOUDFLARE_INSTALLERS_API_TOKEN: ${{ secrets.CLOUDFLARE_INSTALLERS_API_TOKEN }}
+
+  website:
+    name: Website hosting
+    needs: [validate, publish]
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/website.yml
+    with:
+      version: ${{ needs.validate.outputs.version }}
+    secrets:
+      CLOUDFLARE_WEBSITE_API_TOKEN: ${{ secrets.CLOUDFLARE_WEBSITE_API_TOKEN }}

@@ -112,6 +112,9 @@ jobs:
         run: task website:install
       - name: Build documentation website
         run: task website:build
+      - name: Validate Cloudflare deployment
+        working-directory: website
+        run: npm run deploy:check
 
   packages:
     name: Packages
