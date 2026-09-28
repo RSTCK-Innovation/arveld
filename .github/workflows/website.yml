@@ -90,13 +90,12 @@ jobs:
           npm run deploy
       - name: Verify the public deployment
         run: |
+          scripts/wait-for-website-deployment.sh website/dist/client/deployment.json \
+            "https://arveld.com/deployment.json?revision=$GITHUB_SHA"
           curl_options=(--silent --show-error --proto '=https' --connect-timeout 15 --max-time 60)
           for path in / /docs/ /docs/get-started/installation/ /pagefind/pagefind.js; do
             curl "${curl_options[@]}" --fail --retry 5 --retry-all-errors "https://arveld.com$path" -o /dev/null
           done
-          curl "${curl_options[@]}" --fail --retry 5 --retry-all-errors \
-            "https://arveld.com/deployment.json?revision=$GITHUB_SHA" -o deployed.json
-          cmp deployed.json website/dist/client/deployment.json
           status=$(curl "${curl_options[@]}" -o /dev/null -w '%{http_code}' \
             "https://arveld.com/__deployment_missing_page__")
           [[ "$status" == 404 ]]
