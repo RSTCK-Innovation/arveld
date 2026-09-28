@@ -82,6 +82,12 @@ export const groups = [
 		label: "Operate Arveld",
 		pages: [
 			[
+				"docs/guides/advanced-installation.md",
+				"docs/operations/installation",
+				"Other installation methods",
+				"Install an exact release, use Docker or run the controller and Agents manually.",
+			],
+			[
 				"docs/guides/https.md",
 				"docs/operations/https",
 				"HTTPS and service setup",

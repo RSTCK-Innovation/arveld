@@ -15,7 +15,7 @@ case "$component" in
   *) fail 'ARVELD_INSTALL_COMPONENT must be arveld or arveld-agent.' ;;
 esac
 printf '%s\n' "$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$' ||
-  fail 'Set ARVELD_VERSION to an exact release tag, for example v0.1.0-rc.3.'
+  fail 'Set ARVELD_VERSION to an exact release tag.'
 [ "$(uname -s)" = Linux ] || fail 'This installer requires Linux.'
 [ "$(id -u)" = 0 ] || fail 'Run this script as root (sudo); preserve ARVELD_AGENT_TOKEN when installing an Agent.'
 case "$(uname -m)" in

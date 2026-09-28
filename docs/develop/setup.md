@@ -100,7 +100,7 @@ docker build --platform linux/arm64 --target binary --output type=local,dest=bin
 
 Each directory contains `arveld`, with the frontend embedded. The standalone
 executable retains its native startup defaults; Docker passes the container
-configuration through `--config`. See [installation](../guides/installation.md)
+configuration through `--config`. See [other installation methods](../guides/advanced-installation.md)
 for the local Compose workflow and its persistence rules.
 
 ## Validate the operator journey

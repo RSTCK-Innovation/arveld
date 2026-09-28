@@ -90,7 +90,7 @@ Monitor configuration.
 ## Connect to a local controller
 
 For a controller running with the repository's Compose recipe, activate its
-optional Agent service as described in the [installation guide](../guides/agent-setup.md#use-the-local-compose-installation).
+optional Agent service as described in the [installation guide](../guides/advanced-installation.md#use-the-local-compose-installation).
 It reaches the controller through the internal Compose network.
 
 Start the controller using [development setup](setup.md), then create a key in
@@ -120,7 +120,7 @@ separate volumes for separate test Agents.
 Use `task agent:run` above for a local development image. The installation wizard
 uses the published Agent image matching the controller's release version and
 does not accept a version or image override. See the
-[operator guide](../guides/agent-setup.md#run-with-docker) for release installations.
+[operator guide](../guides/advanced-installation.md#run-with-docker) for release installations.
 
 ## Startup and configuration
 
@@ -137,7 +137,7 @@ configuration through OpAMP. Read the [configuration contract](agent-configurati
 before changing compilation, delivery or recovery. OpAMP does not upgrade the
 Agent executable or verify its version before publishing configuration.
 
-Host collection follows the [operator guide's deployment scope](../guides/agent-setup.md#state-and-host-collection).
+Host collection follows the [operator guide's deployment scope](../guides/advanced-installation.md#container-state-and-host-collection).
 The Docker image requires the `/hostfs` mount. Native Linux execution uses the
 host root directly and needs no mount. An explicit `ARVELD_HOST_ROOT` overrides
 that selection; the Agent resolves it locally, not the controller.

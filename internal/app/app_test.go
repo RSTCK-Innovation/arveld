@@ -69,13 +69,23 @@ func TestRunKeepsHTTPServerRunningWhenManagedComponentsFail(t *testing.T) {
 		t.Fatalf("release HTTP address: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
+	// Startup includes SQLite migrations, which can be slow on a busy race-test runner.
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	runDone := make(chan struct{})
 	databasePath := filepath.Join(t.TempDir(), "arveld.db")
+	t.Cleanup(func() {
+		cancel()
+		select {
+		case <-runDone:
+		case <-time.After(10 * time.Second):
+			t.Error("Run() did not finish before test cleanup")
+		}
+	})
 	managedFailed := make(chan struct{})
 	var managedFailedOnce sync.Once
 	runErrors := make(chan error, 1)
 	go func() {
+		defer close(runDone)
 		runErrors <- RunWithComponents(
 			ctx,
 			Config{
@@ -102,8 +112,10 @@ func TestRunKeepsHTTPServerRunningWhenManagedComponentsFail(t *testing.T) {
 
 	select {
 	case <-managedFailed:
-	case <-time.After(time.Second):
-		t.Fatal("managed components did not start")
+	case err := <-runErrors:
+		t.Fatalf("Run() stopped before managed components started: %v", err)
+	case <-ctx.Done():
+		t.Fatalf("managed components did not start: %v", ctx.Err())
 	}
 	select {
 	case err := <-runErrors:
@@ -125,7 +137,7 @@ func TestRunKeepsHTTPServerRunningWhenManagedComponentsFail(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Run() error = %v, want nil", err)
 		}
-	case <-time.After(time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("Run() did not stop after its context was canceled")
 	}
 }

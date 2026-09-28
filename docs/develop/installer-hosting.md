@@ -106,7 +106,7 @@ concurrency group.
 
 Public scripts still download binaries and their checksums from GitHub. While
 the repository is private, use authenticated `gh release download` and
-`ARVELD_RELEASE_DIR` as described in the [installation guide](../guides/installation.md).
+`ARVELD_RELEASE_DIR` as described in [other installation methods](../guides/advanced-installation.md#install-a-specific-version).
 No GitHub or Agent token is embedded in the public scripts.
 
 Run the publication boundary tests with:

@@ -8,7 +8,7 @@ for current package availability.
 ## Release Compose installation
 
 Download the target release's `compose.yaml` and `SHA256SUMS` into a separate
-directory and verify its checksum as in [installation](installation.md). Back up
+directory and verify its checksum as in [release asset downloads](advanced-installation.md#download-release-assets). Back up
 the complete current state and retain the previous Compose file. Replace only
 `compose.yaml` in the existing installation directory; preserve `.env`, the
 Compose project name and volumes. Restore `ARVELD_AGENT_TOKEN` if using the Agent.
@@ -20,8 +20,7 @@ docker compose --profile agent up --detach
 
 Omit `--profile agent` when you only run the controller. Both images use the
 target release's version tag, so replacing the Compose file selects that release.
-Older candidates through `v0.1.0-rc.2` use digest references instead. Never use
-`down --volumes` for an update. Perform the readiness and continuity checks below.
+Never use `down --volumes` for an update. Perform the readiness and continuity checks below.
 
 ## Controller
 
