@@ -100,5 +100,5 @@ jobs:
           status=$(curl "${curl_options[@]}" -o /dev/null -w '%{http_code}' \
             "https://arveld.com/__deployment_missing_page__")
           [[ "$status" == 404 ]]
-          printf 'Published https://arveld.com and https://arveld.com/docs/ from `%s`.\n' \
+          printf 'Published https://arveld.com and https://arveld.com/docs/ from %s.\n' \
             "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
