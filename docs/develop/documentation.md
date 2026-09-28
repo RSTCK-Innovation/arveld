@@ -71,8 +71,11 @@ gh workflow run website.yml --ref main
 
 Manual runs on other branches are rejected. This command requires successful
 main CI and frontend audit runs for the selected commit. Deployments are
-serialized. Each deployment verifies the public landing, documentation, search
-asset, 404 response and `/deployment.json` revision. To retry a failed release
+serialized. Each deployment first waits for `/deployment.json` to match the
+expected commit and ref. It makes up to 12 attempts, with five seconds between
+attempts and a 15-second timeout per request, including when HTTP 200 still
+serves the preceding deployment. It then verifies the public landing,
+documentation, search asset and 404 response. To retry a failed release
 deployment, rerun only its failed website job; the immutable release remains
 intact. Replaying an older release deliberately replaces the current website.
 
