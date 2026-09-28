@@ -29,7 +29,13 @@ and browser review rather than a behavioral test suite.
 ```sh
 task web:install
 task build
+task hooks:install
 ```
+
+Run `task hooks:install` after every fresh clone. It configures this checkout to
+use the versioned `.githooks/pre-commit` hook; Git does not copy that local setting
+when cloning. Before each commit, the hook runs `task pre-commit` to check Go
+formatting and lint in both modules and build the embedded frontend.
 
 The result is `bin/arveld` for the current OS and architecture, with the frontend
 embedded. Bun and the source checkout are build-time dependencies only.
@@ -100,7 +106,7 @@ docker build --platform linux/arm64 --target binary --output type=local,dest=bin
 
 Each directory contains `arveld`, with the frontend embedded. The standalone
 executable retains its native startup defaults; Docker passes the container
-configuration through `--config`. See [installation](../guides/installation.md)
+configuration through `--config`. See [other installation methods](../guides/advanced-installation.md)
 for the local Compose workflow and its persistence rules.
 
 ## Validate the operator journey

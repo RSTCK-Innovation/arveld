@@ -40,18 +40,18 @@ To reproduce on a Linux host of the matching architecture, install the developme
 tools, Docker and Compose, run `task web:install`, then:
 
 ```sh
-scripts/package-release.sh v0.1.0-rc.2 amd64 /tmp/arveld-release
+scripts/package-release.sh v0.0.0-rc.0 amd64 /tmp/arveld-release
 ```
 
 Use `arm64` on an ARM64 Linux host. `docker/compose.release.yaml` is a template;
 publication resolves only its two image placeholders. Users download the generated
-`compose.yaml` containing the exact release tag for both images, such as
-`ghcr.io/rstck-innovation/arveld:v0.1.0-rc.3` and
-`ghcr.io/rstck-innovation/arveld-agent:v0.1.0-rc.3`.
+`compose.yaml` containing the exact release tag for both images:
+`ghcr.io/rstck-innovation/arveld:VERSION` and
+`ghcr.io/rstck-innovation/arveld-agent:VERSION`, with `VERSION` replaced by
+the published tag. The local example above uses the test-only `v0.0.0-rc.0` label.
 `images.txt` records each image as `image:version@sha256:digest` for verification
 or deployments that require digest pinning. Attestations also retain the image
-digests. No moving `latest` tag is published. Previously published candidates,
-including `v0.1.0-rc.2`, keep their original Compose files with digest references.
+digests. No moving `latest` container tag is published.
 
 ## Publish
 
@@ -64,9 +64,10 @@ including `v0.1.0-rc.2`, keep their original Compose files with digest reference
    ```sh
    git switch main
    git pull --ff-only
-   git tag -s v0.1.0-rc.2 -m 'Arveld v0.1.0-rc.2'
-   git verify-tag v0.1.0-rc.2
-   git push origin v0.1.0-rc.2
+   VERSION=YOUR_NEW_RELEASE_CANDIDATE_TAG
+   git tag -s "$VERSION" -m "Arveld $VERSION"
+   git verify-tag "$VERSION"
+   git push origin "$VERSION"
    ```
 
 3. The workflow requires `vX.Y.Z-rc.N`, verifies the tag signature, checks that
@@ -76,11 +77,14 @@ including `v0.1.0-rc.2`, keep their original Compose files with digest reference
    prerelease. Repository settings make its assets and tag immutable. Verify
    the release page, both image platforms, checksums and a fresh installation.
 5. The installer hosting job publishes versioned script URLs with promotion
-   disabled. Prereleases never update the two short URLs, which are reserved
-   for stable releases (retaining the existing `v0.1.0-rc.3` objects until the
-   first stable promotion). If it fails, recover that job using the
+   disabled. The root URLs used by the Getting Started guide are reserved for
+   the latest promoted stable release. They become available with the first
+   stable promotion. If the job fails, recover using the
    [installer hosting procedure](installer-hosting.md#publication-and-recovery);
    the GitHub release remains published and must not be recreated.
+6. The website job publishes the landing page and documentation from the same
+   release commit to `arveld.com`. It checks the deployed commit and public
+   pages. See [website publication and recovery](documentation.md).
 
 The publisher refuses an existing draft or published release before pushing any
 image tags, so rerunning a published version cannot replace its registry tags.

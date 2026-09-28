@@ -102,8 +102,7 @@ an ordinary installation failing its checksum remains an error.
 `v0.0.0-rc.0` is a CI-only version label. Distribution compatibility tests use
 tiny fixture executables with this version; native package jobs build real
 executables from the commit using the same label. Neither publishes this label
-as a release. Prerelease builds receive the actual signed tag, such as
-`v0.1.0-rc.3`, instead.
+as a release. Prerelease builds receive the actual signed `vX.Y.Z-rc.N` tag instead.
 
 ### Workflow responsibilities
 

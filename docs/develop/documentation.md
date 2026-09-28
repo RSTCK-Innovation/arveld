@@ -89,6 +89,38 @@ from a validated checkout when manual recovery is necessary. See
 [Cloudflare Static Assets](https://developers.cloudflare.com/workers/static-assets/)
 and [Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 
+## Browser security headers
+
+[`public/_headers`](../../website/public/_headers) is copied into the static build
+and applied by Cloudflare to the website's responses, including the 404 page.
+It disables MIME sniffing, embedding the site in frames, browser plugins, and
+unused camera, microphone, location, payment and USB permissions. Cross-origin
+requests disclose only the site's origin in the referrer. The enforced Content
+Security Policy also restricts document base URLs and form submissions to the
+same origin.
+
+A separate `Content-Security-Policy-Report-Only` header evaluates a more
+restrictive resource policy without blocking resources. Violations appear in
+the browser console; no reporting endpoint or telemetry collection is configured.
+Inline scripts and styles are currently allowed for Astro, React and Starlight,
+and `wasm-unsafe-eval` allows Pagefind's WebAssembly search engine without allowing
+JavaScript `eval`. This is not a strict policy against script injection. Before
+enforcing resource restrictions, check the landing tour, documentation search,
+code copying and Cloudflare-injected resources on the deployed site. A stricter
+inline-script policy requires build-generated hashes or nonces.
+
+Astro's development and preview servers do not apply Cloudflare's `_headers`
+rules. To inspect the production headers locally after `npm run build`, use:
+
+```sh
+npm exec wrangler dev -- --local --ip 127.0.0.1 --port 8787
+```
+
+Check the landing, a documentation page and a missing path with `curl -I`, then
+review the browser console and interactions. Keep the Cloudflare HSTS setting
+at the zone level. These website headers do not configure the separate R2
+installer host, Bot Fight Mode, or email DNS records.
+
 ## Edit content once
 
 All user and developer documentation is maintained as Markdown under `docs/`:

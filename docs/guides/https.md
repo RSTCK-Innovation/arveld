@@ -101,7 +101,7 @@ Open the HTTPS URL and sign in. In **Settings → Arveld health**, select
 detail page and reload it directly to confirm that browser navigation works.
 
 Use this HTTPS address as **Arveld URL** in the
-[Agent installation wizard](agent-setup.md#prepare-the-installation). In
+[Agent installation wizard](advanced-installation.md#prepare-an-agent-installation). In
 **Agents**, confirm that the Agent connects and sends fresh measurements through
 the proxy.
 
