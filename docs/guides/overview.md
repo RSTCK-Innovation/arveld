@@ -7,9 +7,12 @@ explains Agents, Monitors, rules, incidents and silences.
 
 ## Start here
 
-Release binaries and public Docker images are not available yet. The installation
-guide describes runtime setup; contributors can use [development setup](../develop/setup.md)
-for local validation.
+Arveld is in prerelease. Check
+[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) for published
+candidates, then follow the [versioned installation instructions](advanced-installation.md#install-a-specific-version).
+The Getting Started convenience scripts below serve stable releases and become
+available with the first stable promotion. If no candidate is published, use
+[development setup](../develop/setup.md) to build from source.
 
 1. [Install Arveld](installation.md) and create the administrator account.
 2. [Connect an Agent](agent-setup.md) on the network you want to observe.

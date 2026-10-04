@@ -1,6 +1,6 @@
 # Repository protection
 
-The repository stays private during release-candidate validation. The baseline
+Arveld is public and in prerelease. The repository protection baseline
 is stored in `.github/rulesets/` and applied by
 `scripts/configure-repository.sh` using a repository administrator's authenticated
 GitHub CLI. The script does not change visibility, organization policies or paid
@@ -38,9 +38,16 @@ security subscriptions. Run it from the repository root after reviewing changes.
   this limitation. Gitleaks scans full history with redacted output. Its
   allowlist contains only two literal public test/example values, not directories.
 
-GitHub Team supports these private-repository rulesets. CodeQL and explicit build
-attestation workflows are prepared but gated on public visibility. Their private
-use would require additional GitHub products; the baseline does not enable them.
+Public-repository controls are configured separately: secret scanning, push
+protection, private vulnerability reporting, and approval for all external
+contributors running fork PR workflows. Arveld's settings are managed at the
+repository level; the organization configuration used by private repositories
+must not override them with disabled settings.
+
+CodeQL analyzes Go and JavaScript/TypeScript on pull requests, pushes to `main`,
+weekly and on manual dispatch. The Go job builds both modules. Release workflows
+generate build attestations for files and image indexes. Both workflows check
+public visibility; they do not enable paid security products for private copies.
 
 ## Dependency update cadence and coverage
 
@@ -78,10 +85,12 @@ native Bun Dependabot updates once its hosted updater accepts lockfile v2.
 
 Run `scripts/check-component-updates.sh` locally to check engine releases.
 
-## Before opening the repository
+## Public distribution checklist
 
-Opening is a separate maintainer decision. Do not infer authorization to change
-visibility from a release task.
+The repository is public. Keep repository visibility and GHCR package visibility
+as separate decisions: publishing a release does not make a newly created
+package public automatically. Private forks and copies still require their
+owner's explicit approval before changing visibility.
 
 1. Arveld uses [Apache License 2.0](../../LICENSE), with contribution terms in
    [CONTRIBUTING.md](../../CONTRIBUTING.md). Review licenses and notices for all
@@ -93,23 +102,22 @@ visibility from a release task.
    installed GitHub Apps, deploy keys, Actions secrets and package permissions.
    Remove obsolete access through the owning account. Confirm repository rules
    still apply without administrator bypass.
-3. After the explicitly approved public visibility change, enable free public
-   secret scanning and push protection, private vulnerability reporting, and
-   require approval for **all outside collaborators** running fork PR workflows.
-   Keep fork tokens read-only and never send secrets to forks. These public-only
-   controls are unavailable on this private repository with its current plan.
-4. Run CodeQL manually for Go and JavaScript/TypeScript, inspect the results, and
-   add successful analysis checks/code-scanning merge protection. The Go job
-   builds both Go modules. Review dependency alerts before public distribution.
+3. Verify public secret scanning and push protection, private vulnerability
+   reporting, and approval for **all external contributors** running fork PR
+   workflows. Keep fork tokens read-only and never send secrets to forks.
+   Recheck these settings after changing organization security configurations.
+4. Inspect CodeQL results for Go and JavaScript/TypeScript on the release commit.
+   A successful workflow upload alone does not establish that no alerts exist;
+   review code-scanning and dependency alerts before public distribution.
    Keep the weekly CodeQL run enabled. Consider dependency-review gating once the
    dependency graph has been verified for both Go modules and frontend lockfiles.
 5. Review the GHCR packages and explicitly change their visibility only when
    public distribution is approved. Verify an anonymous pull of both architectures
    and download/install each release archive without repository credentials.
-6. Publish a new candidate from validated `main` to exercise public build
-   attestations. Verify the release/asset integrity and image attestations with
-   GitHub CLI; previously published private candidates are not retroactively
-   attested by the workflow.
+6. Publish a new candidate from validated `main`. Verify release/asset integrity,
+   build attestations and image attestations using the
+   [release verification procedure](releases.md#provenance-and-visibility).
+   Previously published private candidates are not retroactively attested.
 
 Reference: [Dependabot scheduling](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#schedule),
 [ruleset availability](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets),

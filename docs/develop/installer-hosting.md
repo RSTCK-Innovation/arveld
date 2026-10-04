@@ -112,8 +112,8 @@ Use an actually published stable version. Manual promotion of a prerelease is
 rejected even if `promote=true` is supplied. All R2 publication jobs share one
 concurrency group.
 
-Public scripts still download binaries and their checksums from GitHub. While
-the repository is private, use authenticated `gh release download` and
+Public scripts download binaries and their checksums from the public GitHub
+release without authentication. To use local release files, pass
 `ARVELD_RELEASE_DIR` as described in [other installation methods](../guides/advanced-installation.md#install-a-specific-version).
 No GitHub or Agent token is embedded in the public scripts.
 

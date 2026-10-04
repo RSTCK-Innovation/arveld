@@ -1,4 +1,12 @@
-This release candidate supports Linux amd64 and arm64.
+This is Arveld's first public release candidate, with controller and Agent builds
+for Linux amd64 and arm64. GitHub release downloads and GHCR images are public;
+no GitHub account or registry login is required.
+
+Every archive and runtime image includes a generated `THIRD_PARTY_NOTICES.txt`
+containing the dependency license texts and notices. The Linux installers retain
+these alongside Arveld's `LICENSE` and `NOTICE` in `/usr/local/share/licenses/COMPONENT/`.
+GitHub build attestations cover the release files and both container image indexes;
+see [provenance verification](https://arveld.com/docs/develop/releases/#provenance-and-visibility).
 
 Download the installer scripts attached to this release, or use its versioned
 URLs as described in [other installation methods](https://arveld.com/docs/operations/installation/).

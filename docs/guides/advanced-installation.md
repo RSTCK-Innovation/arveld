@@ -9,19 +9,21 @@ manual execution. Use the same release version for the controller and Agents.
 Published Linux `amd64` and `arm64` candidates are listed in
 [GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases). If no
 release is listed, use the [source build instructions](../develop/setup.md).
-Downloads from a private repository require an account with access. Candidates
-are for evaluation; back up state before updates. All commands below require
-an actually published version; they do not refer to a pre-existing release.
+Published assets and release images are public; no GitHub account or registry
+login is required. Candidates are for evaluation; back up state before updates.
+All commands below require an actually published version; replace the version
+placeholder with its tag.
 
-With GitHub CLI authenticated, download a specific version:
+Download a specific version:
 
 ```sh
 mkdir arveld-install && cd arveld-install
 VERSION=YOUR_PUBLISHED_RELEASE_TAG
-gh release download "$VERSION" --repo RSTCK-Innovation/arveld \
-  --pattern "arveld-${VERSION}_linux_amd64.tar.gz" \
-  --pattern "arveld-agent-${VERSION}_linux_amd64.tar.gz" \
-  --pattern SHA256SUMS --pattern compose.yaml
+BASE="https://github.com/RSTCK-Innovation/arveld/releases/download/$VERSION"
+for FILE in "arveld-${VERSION}_linux_amd64.tar.gz" \
+  "arveld-agent-${VERSION}_linux_amd64.tar.gz" SHA256SUMS compose.yaml; do
+  curl -fL "$BASE/$FILE" -o "$FILE"
+done
 sha256sum --check --ignore-missing SHA256SUMS
 ```
 
@@ -30,9 +32,7 @@ inside the download directory. It must succeed for every downloaded file.
 `SHA256SUMS` detects file corruption; authenticate the download source as well.
 The GitHub release is immutable after publication.
 
-For Docker, authenticate to GHCR if the images are private, using
-`docker login ghcr.io --username YOUR_GITHUB_LOGIN` and a token with
-`read:packages` access. Then start the controller:
+For Docker, start the controller from the downloaded Compose file:
 
 ```sh
 docker compose up --detach controller
@@ -77,14 +77,15 @@ For an Agent, use `install-arveld-agent.sh` and supply `ARVELD_URL` and
 The versioned script always installs its embedded release, even after a newer
 version is published.
 
-Public access to the scripts does not grant access to private GitHub binaries.
-While releases are private, or to prepare an offline binary installation,
-download authenticated assets first. Replace `amd64` with `arm64` when needed:
+To install from local release files, download the script, matching archive and
+checksums into one directory, then pass that directory to the installer.
+Replace `amd64` with `arm64` when needed:
 
 ```sh
-gh release download "$VERSION" --repo RSTCK-Innovation/arveld \
-  --pattern install-arveld.sh --pattern SHA256SUMS \
-  --pattern "arveld-${VERSION}_linux_amd64.tar.gz"
+BASE="https://github.com/RSTCK-Innovation/arveld/releases/download/$VERSION"
+for FILE in install-arveld.sh "arveld-${VERSION}_linux_amd64.tar.gz" SHA256SUMS; do
+  curl -fL "$BASE/$FILE" -o "$FILE"
+done
 sha256sum --check --ignore-missing SHA256SUMS
 sudo env ARVELD_RELEASE_DIR="$PWD" sh install-arveld.sh
 ```
@@ -244,9 +245,8 @@ is `/usr/local/bin/arveld-agent`; identity and local configuration persist in
 `/etc/arveld-agent/agent.env`, owned by root with mode `0600`.
 The service grants `CAP_NET_RAW` for ICMP Monitors without running as root.
 
-For private releases, download the Agent archive and `SHA256SUMS` with
-[authenticated GitHub CLI](#download-release-assets). Pass
-`ARVELD_RELEASE_DIR` when running the prepared installer:
+To use local release files, [download the Agent archive and `SHA256SUMS`](#download-release-assets).
+Pass `ARVELD_RELEASE_DIR` when running the prepared installer:
 
 ```sh
 sudo --preserve-env=ARVELD_AGENT_TOKEN \
@@ -263,8 +263,8 @@ connection and fresh measurements in Arveld.
 ## Run with Docker
 
 The wizard prepares a script to run on the Agent host. It does not start a
-container remotely. Authenticate to GHCR on that host before using a private
-release image. The image tag matches the version of the Arveld controller.
+container remotely. The public image tag matches the version of the Arveld
+controller; no registry login is required.
 
 Copy the downloaded script to the Agent host. In the terminal where you will run
 it, provide the Agent key as instructed by the wizard:
