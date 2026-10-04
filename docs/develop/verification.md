@@ -39,7 +39,7 @@ runs on a native Ubuntu 24.04 `arm64` runner:
 | Documentation | `task website:install` then `task website:build`: locked dependencies and the production website build |
 | Packages / Linux (amd64), Packages / Linux (arm64) | Release archives and images, version output, real Compose persistence, systemd installation and Agent reconnection on both native architectures |
 | Secrets | Actionlint workflow validation and Gitleaks full-history scanning, with redacted output |
-| Frontend dependency audit | `bun audit --audit-level=high`: all packages in the Bun lockfile, also checked weekly |
+| Frontend dependency audit | `bun audit --audit-level=high` in `web/` and `npm audit --package-lock-only --audit-level=high` in `website/`: both complete lockfiles, also checked weekly |
 | Linux installers | Actual package managers, accounts and files on Ubuntu, Debian, AlmaLinux, Rocky Linux, Fedora, Red Hat UBI, Amazon Linux, openSUSE and Arch Linux |
 
 The Secrets job also runs `python3 -m unittest discover -v -s tests/installers -p 'test_*.py'`
@@ -112,7 +112,7 @@ as a release. Prerelease builds receive the actual signed `vX.Y.Z-rc.N` tag inst
 | Release packages | Shared package checks invoked inside CI or Prerelease; real binaries, version checks, Compose/systemd tests and temporary artifacts |
 | Prerelease | Signed-tag admission, successful checks on the exact main commit, publication of tested artifacts and conditional attestations |
 | Publish Linux installers | Immutable release validation, script allowlist/checksums, stable-only root promotion and public HTTPS verification |
-| Frontend dependency audit | Known vulnerability audit of the frontend lockfile; high/critical advisories fail the job |
+| Frontend dependency audit | Known vulnerability audit of the application frontend and website lockfiles; high/critical advisories fail the job |
 | CodeQL | Source security analysis for public repositories; a separate explanation states explicitly when private-repository analysis was skipped |
 | Dependency update report | Informational engine/frontend version comparisons without changing dependencies |
 | Dependabot Updates | GitHub-managed update jobs configured by `.github/dependabot.yml`; these can propose dependency update pull requests |

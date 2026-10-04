@@ -82,12 +82,17 @@ jobs:
           echo '[PASS] Release metadata accepted. Downloading the original installer assets.'
           gh release download "$VERSION" --dir installers \
             --pattern install-arveld.sh --pattern install-arveld-agent.sh --pattern SHA256SUMS
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          bun-version-file: web/package.json
-      - name: Install Wrangler
-        run: bun install --global wrangler@4.142.0
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Install locked publication dependencies
+        working-directory: website
+        run: |
+          npm ci
+          printf '%s\n' "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Publish only scripts and their checksums
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
