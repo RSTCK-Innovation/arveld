@@ -37,7 +37,7 @@ runs on a native Ubuntu 24.04 `arm64` runner:
 | --- | --- |
 | Application | `task web:install`, then separate steps for `task lint:config`, `task fmt:check`, `task test`, `task test:race`, `task lint` and `task web:check` (the same checks as `task check`) |
 | Documentation | `task website:install` then `task website:build`: locked dependencies and the production website build |
-| Packages / Linux (amd64), Packages / Linux (arm64) | Release archives and images, version output, real Compose persistence, systemd installation and Agent reconnection on both native architectures |
+| Packages / Linux (amd64), Packages / Linux (arm64) | Release archives and images with generated third-party notices, version output, real Compose persistence, systemd installation and Agent reconnection on both native architectures |
 | Secrets | Actionlint workflow validation and Gitleaks full-history scanning, with redacted output |
 | Frontend dependency audit | `bun audit --audit-level=high` in `web/` and `npm audit --package-lock-only --audit-level=high` in `website/`: both complete lockfiles, also checked weekly |
 | Linux installers | Actual package managers, accounts and files on Ubuntu, Debian, AlmaLinux, Rocky Linux, Fedora, Red Hat UBI, Amazon Linux, openSUSE and Arch Linux |
@@ -65,7 +65,8 @@ See [release publishing](releases.md) and [repository protection](repository-sec
 Distribution installer checks use fixture executables and replace `systemctl`
 at the process boundary because those containers do not boot systemd. They
 exercise installation, reinstallation, saved credentials, identity preservation,
-file permissions and rejection of corrupt or unchecksummed archives. They do
+file permissions, installation of licensing files, and rejection of corrupt,
+unchecksummed archives or empty licensing text. They do
 not claim to verify service startup or SELinux enforcement inside a container.
 The two package jobs also install the actual release binaries on their disposable
 Ubuntu runners with systemd, create an administrator and Agent key, connect the

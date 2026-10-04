@@ -43,6 +43,7 @@ jobs:
           fi
           cat <<'CHECKS'
           - Build controller and Agent images, verify their version output, and extract the exact tested executables into archives.
+          - Generate one THIRD_PARTY_NOTICES.txt per component and preserve it in its binary export, runtime image, archive and native installation.
           - Test real Compose startup, measurements and data persistence across recreation.
           - Install with real systemd, connect an Agent and verify identity/configuration preservation after reinstalling.
           - Generate SPDX dependency inventories; these inventories are not vulnerability scans.

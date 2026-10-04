@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 import urllib.error
@@ -37,7 +38,8 @@ print(f"[CONTEXT] Native systemd test using real controller and Agent binaries f
 print("[CHECK] Require an empty disposable runner before installing either service.", flush=True)
 for component in ("arveld", "arveld-agent"):
     for path in (f"/etc/{component}", f"/var/lib/{component}", f"/usr/local/bin/{component}",
-                 f"/etc/systemd/system/{component}.service"):
+                 f"/etc/systemd/system/{component}.service",
+                 f"/usr/local/share/licenses/{component}"):
         assert not Path(path).exists(), f"Refusing to overwrite {path}"
 
 client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -65,6 +67,14 @@ with tempfile.TemporaryDirectory(prefix="arveld-systemd-") as directory:
 
     def install(component, connection=None):
         run("sh", str(release / f"install-{component}.sh"), env={**env, **(connection or {})})
+        arch = {"x86_64": "amd64", "aarch64": "arm64"}[os.uname().machine]
+        with tarfile.open(release / f"{component}-{version}_linux_{arch}.tar.gz") as archive:
+            for filename in ("LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.txt"):
+                installed = Path(f"/usr/local/share/licenses/{component}/{filename}")
+                source = archive.extractfile(f"./{filename}")
+                assert source is not None
+                assert installed.read_bytes() == source.read()
+                assert installed.stat().st_mode & 0o777 == 0o644
         run("systemctl", "is-active", "--quiet", component)
         run("systemctl", "is-enabled", "--quiet", component)
 
@@ -111,7 +121,8 @@ with tempfile.TemporaryDirectory(prefix="arveld-systemd-") as directory:
         for component in ("arveld-agent", "arveld"):
             subprocess.run(["journalctl", "--no-pager", "-u", component, "-n", "30"], check=False)
             subprocess.run(["systemctl", "disable", "--now", component], check=False)
-            for path in (f"/etc/{component}", f"/var/lib/{component}"):
+            for path in (f"/etc/{component}", f"/var/lib/{component}",
+                         f"/usr/local/share/licenses/{component}"):
                 shutil.rmtree(path, ignore_errors=True)
             Path(f"/usr/local/bin/{component}").unlink(missing_ok=True)
             Path(f"/etc/systemd/system/{component}.service").unlink(missing_ok=True)

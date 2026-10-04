@@ -7,13 +7,31 @@ controller and Agent, and a Compose file using release image tags.
 Both executables report the same Arveld version with `--version`. The Agent's
 Collector dependency version is tracked separately in `agent/go.mod`.
 
-Archives include Arveld's `LICENSE` and `NOTICE`; runtime images include them
-under `/usr/share/licenses/arveld/` or `/usr/share/licenses/arveld-agent/` and
-declare `Apache-2.0` in their OCI license label. Binary export targets also
-include both files. The copies in `agent/` support its independent Docker build
+Archives include Arveld's `LICENSE` and `NOTICE`, plus a single generated
+`THIRD_PARTY_NOTICES.txt` for the component's dependencies. Runtime images include
+these files under `/usr/share/licenses/arveld/` or `/usr/share/licenses/arveld-agent/`
+and declare `Apache-2.0` in their OCI license label. Binary export targets also
+include all three files. The project license copies in `agent/` support its independent Docker build
 context and must match the root files; packaging checks this before building.
-These files cover Arveld itself. Third-party components retain their own terms;
-review their licenses and redistribution notices before public distribution.
+The Linux installers preserve them under `/usr/local/share/licenses/COMPONENT/`
+with mode `0644` and root ownership, including after reinstallation.
+
+The [notice generator](../../agent/scripts/third-party-notices.sh) uses pinned
+`go-licenses` v2.0.1 with the build's platform, cgo setting and Go tags. It combines
+the original license texts, additional upstream notices, versioned source archive
+links and Go's own license. The controller also includes Vite's generated licenses
+for the dependencies bundled in its frontend, including fonts. Both components'
+notices also retain the Mozilla certificate data license for the trust bundle
+copied into runtime images. Generation fails
+if a Go dependency's license cannot be identified or a required document is missing;
+no list of dependency names needs manual maintenance. Third-party terms remain
+independent of Arveld's license. Review new dependencies' terms when updating them;
+automated collection is not a legal compatibility assessment.
+
+The generator lives in the Agent build context so both Dockerfiles can use the
+same script. Generated notices are build outputs, not tracked source files.
+Package archives take their copy directly from the tested image. SPDX inventories
+continue to provide the separate machine-readable dependency inventory.
 
 ## Build and verify
 

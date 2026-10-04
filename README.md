@@ -42,4 +42,6 @@ See [SECURITY.md](SECURITY.md) for private vulnerability reporting and
 
 Arveld is licensed under the [Apache License 2.0](LICENSE).
 Copyright 2026 RSTCK Innovation. See [NOTICE](NOTICE).
+Release archives and images include generated `THIRD_PARTY_NOTICES.txt` files
+with the dependency license texts; see [release packaging](docs/develop/releases.md).
 Third-party components retain their own copyrights and licenses.

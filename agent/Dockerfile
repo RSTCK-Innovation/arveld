@@ -6,14 +6,19 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY cmd/ ./cmd/
+COPY scripts/third-party-notices.sh /tools/third-party-notices.sh
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOTOOLCHAIN=local GOMAXPROCS=4 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -p=4 -trimpath -buildvcs=false -ldflags="-s -w -X main.version=${VERSION}" -tags=grpcnotrace -o /out/arveld-agent ./cmd/arveld-agent
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOTOOLCHAIN=local GOMAXPROCS=4 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOFLAGS=-tags=grpcnotrace \
+    bash /tools/third-party-notices.sh /out/THIRD_PARTY_NOTICES.txt ./cmd/arveld-agent '' /usr/share/doc/ca-certificates/copyright
 RUN mkdir -p /out/state
 
 # Export this target to obtain the exact executable used by the runtime image.
 FROM scratch AS binary
 COPY --from=build /out/arveld-agent /arveld-agent
+COPY --from=build /out/THIRD_PARTY_NOTICES.txt /THIRD_PARTY_NOTICES.txt
 COPY LICENSE NOTICE /
 
 FROM scratch AS runtime
@@ -24,7 +29,7 @@ LABEL org.opencontainers.image.source="https://github.com/RSTCK-Innovation/arvel
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}"
 COPY --from=binary /arveld-agent /arveld-agent
-COPY --from=binary /LICENSE /NOTICE /usr/share/licenses/arveld-agent/
+COPY --from=binary /LICENSE /NOTICE /THIRD_PARTY_NOTICES.txt /usr/share/licenses/arveld-agent/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build --chown=10001:10001 /out/state/ /var/lib/arveld-agent/
 USER 10001:10001
