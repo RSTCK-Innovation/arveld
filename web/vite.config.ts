@@ -5,6 +5,7 @@ export default defineConfig({
   resolve: { alias: { '@mui/styled-engine': '@mui/styled-engine-sc' } },
   plugins: [react()],
   build: {
+    license: { fileName: 'THIRD_PARTY_NOTICES.txt' },
     rolldownOptions: {
       output: {
         codeSplitting: {

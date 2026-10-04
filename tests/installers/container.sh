@@ -42,6 +42,10 @@ for component in arveld arveld-agent; do
   grep -Fx "User=$component" "/etc/systemd/system/$component.service"
   grep -Fx "enable $component.service" /systemctl-calls
   grep -Fx "restart $component.service" /systemctl-calls
+  for file in LICENSE NOTICE THIRD_PARTY_NOTICES.txt; do
+    [ "$(stat -c '%U:%G:%a' "/usr/local/share/licenses/$component/$file")" = 'root:root:644' ]
+  done
+  grep -Fx "Fixture third-party notices for $component" "/usr/local/share/licenses/$component/THIRD_PARTY_NOTICES.txt"
   printf '%s\n' 'preserved identity' > "/var/lib/$component/identity"
   printf '[PASS] Fresh %s installation checks passed.\n' "$component"
 done
@@ -59,8 +63,10 @@ printf '%s\n' '# local retention override' >> /etc/arveld/arveld.yml
 sha256sum /etc/arveld/arveld.yml /etc/arveld-agent/agent.env > /config.sha256
 unset ARVELD_URL ARVELD_AGENT_TOKEN
 for component in arveld arveld-agent; do
+  printf 'outdated notices\n' > "/usr/local/share/licenses/$component/THIRD_PARTY_NOTICES.txt"
   sh "/release/install-$component.sh"
   [ "$(cat "/var/lib/$component/identity")" = 'preserved identity' ]
+  grep -Fx "Fixture third-party notices for $component" "/usr/local/share/licenses/$component/THIRD_PARTY_NOTICES.txt"
 done
 sha256sum --check /config.sha256
 printf '%s\n' '[PASS] Reinstallation preserved configuration, credentials and identity.'
@@ -74,6 +80,20 @@ printf '\ncorrupted' >> "/bad-release/arveld-v0.0.0-rc.0_linux_$(uname -m | sed 
 expect_rejection 'Intentionally corrupted archive' ': FAILED' sh /release/install-arveld.sh
 printf '%s\n' '[CHECK] A rejected archive must not replace the installed binary or call systemctl.'
 sha256sum --check /before.sha256
+
+# A correctly checksummed archive must still contain regular, nonempty notices.
+printf '%s\n' '[TEST] Reject missing licensing text before changing the installed binary or notices.'
+cp /release/* /bad-release/
+mkdir /bad-package
+archive="arveld-v0.0.0-rc.0_linux_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz"
+tar -xzf "/bad-release/$archive" -C /bad-package
+: > /bad-package/THIRD_PARTY_NOTICES.txt
+tar -czf "/bad-release/$archive" -C /bad-package .
+(cd /bad-release && sha256sum "$archive" > SHA256SUMS)
+sha256sum /usr/local/share/licenses/arveld/* > /licenses-before.sha256
+expect_rejection 'Intentionally empty third-party notices' 'Missing or invalid release licensing file' sh /release/install-arveld.sh
+sha256sum --check /before.sha256
+sha256sum --check /licenses-before.sha256
 cp /release/* /bad-release/
 printf '' > /bad-release/SHA256SUMS
 expect_rejection 'Intentionally missing checksum entry' 'SHA256SUMS must contain exactly one entry' sh /release/install-arveld.sh

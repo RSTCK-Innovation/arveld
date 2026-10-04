@@ -17,14 +17,19 @@ COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY web/handler.go ./web/handler.go
 COPY --from=frontend /src/web/dist ./web/dist
+COPY agent/scripts/third-party-notices.sh /tools/third-party-notices.sh
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOTOOLCHAIN=local GOMAXPROCS=4 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -p=4 -trimpath -buildvcs=false -ldflags="-s -w -X main.version=${VERSION}" -o /out/arveld ./cmd/arveld
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOTOOLCHAIN=local GOMAXPROCS=4 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    bash /tools/third-party-notices.sh /out/THIRD_PARTY_NOTICES.txt ./cmd/arveld web/dist/THIRD_PARTY_NOTICES.txt /usr/share/doc/ca-certificates/copyright
 RUN mkdir -p /out/state
 
 # The exported executable and runtime image share the same build output.
 FROM scratch AS binary
 COPY --from=build /out/arveld /arveld
+COPY --from=build /out/THIRD_PARTY_NOTICES.txt /THIRD_PARTY_NOTICES.txt
 COPY LICENSE NOTICE /
 
 FROM scratch AS runtime
@@ -35,7 +40,7 @@ LABEL org.opencontainers.image.source="https://github.com/RSTCK-Innovation/arvel
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}"
 COPY --from=binary /arveld /arveld
-COPY --from=binary /LICENSE /NOTICE /usr/share/licenses/arveld/
+COPY --from=binary /LICENSE /NOTICE /THIRD_PARTY_NOTICES.txt /usr/share/licenses/arveld/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build --chown=10001:10001 /out/state/ /var/lib/arveld/
 COPY docker/arveld.yml /etc/arveld/arveld.yml

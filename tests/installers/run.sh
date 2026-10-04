@@ -15,8 +15,10 @@ for component in arveld arveld-agent; do
   mkdir "$work/$component"
   printf '#!/bin/sh\n[ "$1" = --version ] || exit 1\necho "%s %s"\n' "$component" "$version" > "$work/$component/$component"
   chmod 0755 "$work/$component/$component"
+  cp "$root/LICENSE" "$root/NOTICE" "$work/$component/"
+  printf 'Fixture third-party notices for %s\n' "$component" > "$work/$component/THIRD_PARTY_NOTICES.txt"
   for arch in amd64 arm64; do
-    tar -czf "$work/assets/$component-${version}_linux_$arch.tar.gz" -C "$work/$component" "./$component"
+    tar -czf "$work/assets/$component-${version}_linux_$arch.tar.gz" -C "$work/$component" .
   done
 done
 sh "$root/scripts/package-installers.sh" "$version" "$work/assets"

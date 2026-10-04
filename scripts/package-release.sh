@@ -32,12 +32,17 @@ for component in arveld arveld-agent; do
   container=$(docker create "$image")
   trap 'docker rm "$container" >/dev/null' EXIT
   docker cp "$container:/$component" "$package/$component"
+  docker cp "$container:/usr/share/licenses/$component/." "$package/"
   docker rm "$container" >/dev/null
   trap - EXIT
   chmod +x "$package/$component"
   printf '[CHECK] The exact executable extracted from the image must report %s %s.\n' "$component" "$version"
   [[ "$("$package/$component" --version)" == "$component $version" ]]
-  cp LICENSE NOTICE README.md SECURITY.md "$package/"
+  cmp LICENSE "$package/LICENSE"
+  cmp NOTICE "$package/NOTICE"
+  [[ -s "$package/THIRD_PARTY_NOTICES.txt" ]]
+  grep -Fxq 'THIRD-PARTY NOTICES' "$package/THIRD_PARTY_NOTICES.txt"
+  cp README.md SECURITY.md "$package/"
   tar -czf "$output/assets/$component-${version}_linux_$arch.tar.gz" -C "$package" .
   docker save "$image" | gzip > "$output/images/$component-$arch.tar.gz"
   printf '[PASS] %s version checks passed; archive and image saved for downstream jobs.\n' "$component"

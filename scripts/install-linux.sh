@@ -41,6 +41,7 @@ command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ] ||
 config_dir=/etc/$component
 data_dir=/var/lib/$component
 binary=/usr/local/bin/$component
+license_dir=/usr/local/share/licenses/$component
 environment=$config_dir/agent.env
 write_connection=false
 if [ "$component" = arveld-agent ]; then
@@ -110,8 +111,13 @@ awk -v file="$archive" '$2 == file || $2 == "./" file { print $1 "  " file; coun
   fail "SHA256SUMS must contain exactly one entry for $archive."
 (cd "$work" && sha256sum --check selected.sha256)
 mkdir "$work/unpacked"
-tar -xzf "$work/$archive" -C "$work/unpacked" --no-same-owner "./$component"
+tar -xzf "$work/$archive" -C "$work/unpacked" --no-same-owner \
+  "./$component" ./LICENSE ./NOTICE ./THIRD_PARTY_NOTICES.txt
 [ -f "$work/unpacked/$component" ] && [ ! -L "$work/unpacked/$component" ] || fail 'Missing release executable.'
+for file in LICENSE NOTICE THIRD_PARTY_NOTICES.txt; do
+  [ -f "$work/unpacked/$file" ] && [ -s "$work/unpacked/$file" ] && [ ! -L "$work/unpacked/$file" ] ||
+    fail "Missing or invalid release licensing file: $file"
+done
 chmod 0755 "$work/unpacked/$component"
 [ "$("$work/unpacked/$component" --version)" = "$component $version" ] || fail 'Release executable version mismatch.'
 
@@ -124,6 +130,10 @@ fi
 install -d -o "$component" -g "$component" -m 0700 "$data_dir"
 install -d -o root -g "$component" -m 0750 "$config_dir"
 install -d -m 0755 /usr/local/bin
+install -d -o root -g root -m 0755 "$license_dir"
+for file in LICENSE NOTICE THIRD_PARTY_NOTICES.txt; do
+  install -o root -g root -m 0644 "$work/unpacked/$file" "$license_dir/$file"
+done
 # Rename on the same filesystem so a running executable can be replaced safely.
 staged_binary=$(mktemp /usr/local/bin/.$component.XXXXXX)
 install -o root -g root -m 0755 "$work/unpacked/$component" "$staged_binary"
