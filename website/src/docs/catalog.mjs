@@ -181,7 +181,7 @@ export const groups = [
 				"docs/develop/repository-security.md",
 				"docs/develop/repository-security",
 				"Repository protection",
-				"Maintain repository protections and prepare public access.",
+				"Maintain protections and verify public releases.",
 			],
 			[
 				"docs/develop/documentation.md",

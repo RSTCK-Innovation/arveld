@@ -74,7 +74,8 @@ digests. No moving `latest` container tag is published.
 ## Publish
 
 1. Merge the release changes through a pull request and wait for the `CI` and frontend dependency
-   audit push runs on that exact `main` commit to succeed. Update release notes in
+   audit push runs on that exact `main` commit to succeed. Inspect both CodeQL
+   analyses and any open security alerts. Update release notes in
    `.github/release-notes.md` before merging when preparing the next candidate.
 2. Update local `main` and inspect the commit to release. Create an annotated,
    SSH-signed tag using a key in `.github/release-signers`:
@@ -93,7 +94,13 @@ digests. No moving `latest` container tag is published.
    runs for that exact commit. Only its publication job has contents/packages write access.
 4. Publication creates a draft, uploads every asset, then publishes it as a
    prerelease. Repository settings make its assets and tag immutable. Verify
-   the release page, both image platforms, checksums and a fresh installation.
+   the release page, both image platforms, checksums, attestations and a fresh
+   installation. Newly created GHCR packages default to private even when the
+   repository is public: set both release packages to public when public
+   distribution is approved, then verify anonymous pulls for both architectures.
+   Check that the packages are associated with `RSTCK-Innovation/arveld` and
+   grant that repository Actions access. Repeat this check if a package is
+   recreated after cleanup.
 5. The installer hosting job publishes versioned script URLs with promotion
    disabled. The root URLs used by the Getting Started guide are reserved for
    the latest promoted stable release. They become available with the first
@@ -115,17 +122,51 @@ be dispatched against the existing signed tag, not a branch.
 
 ## Provenance and visibility
 
-GitHub immutable releases provide release integrity. Explicit GitHub build
-attestations for files and images run when the repository is public; GitHub Team
-does not include those artifact attestations for private repositories. Private
-candidates therefore do not claim those build attestations. See
+GitHub immutable releases provide release integrity. The public release workflow
+also generates explicit GitHub build attestations for release files and both
+multi-architecture image indexes. Private copies skip these steps and do not
+claim those build attestations. See
 [GitHub's availability rules](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+
+After downloading a published release's assets, verify its immutable release
+attestation and checksum manifest with GitHub CLI, then check the local files:
+
+```sh
+VERSION=YOUR_PUBLISHED_RELEASE_TAG
+gh release verify "$VERSION" --repo RSTCK-Innovation/arveld
+gh release verify-asset "$VERSION" SHA256SUMS --repo RSTCK-Innovation/arveld
+sha256sum --check --ignore-missing SHA256SUMS
+```
+
+Verify a downloaded archive's build attestation against the publication workflow
+and exact source tag. Repeat for each release file you use:
+
+```sh
+ARCHIVE="arveld-${VERSION}_linux_amd64.tar.gz"
+gh attestation verify "$ARCHIVE" --repo RSTCK-Innovation/arveld \
+  --signer-workflow RSTCK-Innovation/arveld/.github/workflows/release.yml \
+  --source-ref "refs/tags/$VERSION" --deny-self-hosted-runners
+```
+
+Download `images.txt` and verify both pinned image indexes:
+
+```sh
+while IFS= read -r IMAGE; do
+  gh attestation verify "oci://$IMAGE" --repo RSTCK-Innovation/arveld \
+    --signer-workflow RSTCK-Innovation/arveld/.github/workflows/release.yml \
+    --source-ref "refs/tags/$VERSION" --deny-self-hosted-runners
+done < images.txt
+```
+
+GitHub CLI's OCI attestation verifier requires registry authentication. This
+verification requirement is separate from public image pulls and release
+downloads, which do not require credentials.
 
 SPDX inventories describe dependencies identified inside the images. Prometheus
 and Alertmanager are downloaded at runtime and are recorded separately in
 `components.lock.json`. Frontend source dependencies remain recorded in the
 versioned Bun lockfile; an image inventory is not a full vulnerability audit.
 
-Keep GHCR packages private while the repository is private. A later repository
-visibility change does not automatically publish its packages; use the separate
-[public-opening procedure](repository-security.md#before-opening-the-repository).
+Complete the [public distribution checklist](repository-security.md#public-distribution-checklist)
+for each candidate. Root installer URLs remain reserved for stable releases;
+public candidates use versioned URLs only.

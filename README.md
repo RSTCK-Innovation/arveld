@@ -17,14 +17,17 @@ Start with the [user guide](docs/guides/overview.md). It covers
 [notifications](docs/guides/notifications.md), followed by HTTPS, backups and
 updates.
 
-All user and developer documentation lives in `docs/`. The website in `website/`
-publishes that same Markdown at `/docs/` alongside the landing page.
+Read the [documentation at arveld.com](https://arveld.com/docs/). Its source lives
+in `docs/`; the website in `website/` publishes that same Markdown alongside the
+landing page.
 
-Linux `amd64` and `arm64` release candidates are distributed through
-[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) and GHCR.
-Access remains private; this is not yet a stable public release. Follow the
-[installation guide](docs/guides/installation.md) or build from source using
-[development setup](docs/develop/setup.md).
+Arveld is public and in prerelease. Check
+[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) for published
+Linux `amd64` and `arm64` candidates and their GHCR images. Install a candidate
+using the [versioned installation instructions](docs/guides/advanced-installation.md#install-a-specific-version).
+The [Getting Started convenience scripts](docs/guides/installation.md) are reserved
+for stable releases and become available with the first stable promotion.
+If no candidate is published, [build from source](docs/develop/setup.md).
 
 ## Development
 

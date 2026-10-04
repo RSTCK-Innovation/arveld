@@ -61,8 +61,9 @@ task agent:build
 [Dockerfile](../../agent/Dockerfile) compiles the same `cmd/arveld-agent` program
 using the dependency versions in `agent/go.mod`. Its final image contains that
 executable, HTTPS trust certificates and the writable state directory. It retains
-UID/GID `10001:10001` for existing state volumes. Public Agent release packages
-are not available yet.
+UID/GID `10001:10001` for existing state volumes. Check
+[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) for published
+Agent archives and matching multi-architecture GHCR images.
 
 To export the exact Linux executable used by the image, select the `binary`
 build target. From the repository root:
@@ -72,9 +73,10 @@ docker build --platform linux/amd64 --target binary --output type=local,dest=bin
 docker build --platform linux/arm64 --target binary --output type=local,dest=bin/linux-arm64 agent
 ```
 
-Each output directory contains one `arveld-agent` executable. The runtime image
-copies its executable from this same target; there is no separate Collector or
-Supervisor executable to install.
+Each output directory contains the `arveld-agent` executable, `LICENSE`, `NOTICE`
+and generated `THIRD_PARTY_NOTICES.txt`. The runtime image copies its executable
+from this same target; there is no separate Collector or Supervisor executable
+to install.
 
 Use `task package:linux` to build both controller and Agent images and export
 both Linux architectures together; see [development setup](setup.md#package-linux-binaries-and-docker-images).
