@@ -31,7 +31,8 @@ security subscriptions. Run it from the repository root after reviewing changes.
   Docker and Actions. The hosted Bun updater cannot read lockfile version 2, so
   frontend version updates remain manual using Bun 1.4.2, with available versions
   reported by the scheduled dependency update workflow. The frontend audit
-  workflow checks the complete Bun lockfile on PRs, main pushes and weekly,
+  workflow checks the complete `web/bun.lock` and `website/package-lock.json`
+  on PRs, main pushes and weekly,
   blocking high/critical advisories. Restore Bun Dependabot updates after its
   hosted updater supports this format; do not downgrade the lockfile to bypass
   this limitation. Gitleaks scans full history with redacted output. Its

@@ -23,7 +23,7 @@ jobs:
           cat <<'CHECKS'
           [PLAN] frontend vulnerability audit
 
-          Audit the packages recorded in web/bun.lock without modifying dependencies.
+          Audit the packages recorded in web/bun.lock and website/package-lock.json without modifying dependencies.
           High or critical advisories fail this job. This checks known vulnerabilities, not whether every dependency is on its newest version.
           CHECKS
       - name: Check out source
@@ -37,3 +37,10 @@ jobs:
       - name: Reject high or critical advisories in the frontend lockfile
         working-directory: web
         run: bun audit --audit-level=high
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - name: Reject high or critical advisories in the website lockfile
+        working-directory: website
+        run: npm audit --package-lock-only --audit-level=high

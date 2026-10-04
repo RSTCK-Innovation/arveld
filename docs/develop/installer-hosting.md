@@ -27,17 +27,21 @@ must not be published to the root or to versioned paths.
 
 ## Cloudflare setup
 
-Use Wrangler 4.142.0 and log in with an account that can manage R2 and read the
-`arveld.com` zone. Set `CLOUDFLARE_ACCOUNT_ID` when using multiple accounts.
+Use the Wrangler version locked in `website/package-lock.json` and log in with
+an account that can manage R2 and read the `arveld.com` zone.
+Set `CLOUDFLARE_ACCOUNT_ID` when using multiple accounts.
 Create the bucket once, then attach the domain through R2 (which manages the
 DNS record and TLS certificate):
 
 ```sh
-bunx wrangler@4.142.0 r2 bucket create arveld-install --location weur
-bunx wrangler@4.142.0 r2 bucket domain add arveld-install \
+cd website
+npm ci
+npm exec wrangler login
+npm exec wrangler -- r2 bucket create arveld-install --location weur
+npm exec wrangler -- r2 bucket domain add arveld-install \
   --domain install.arveld.com --zone-id YOUR_ARVELD_ZONE_ID --min-tls 1.2
-bunx wrangler@4.142.0 r2 bucket dev-url disable arveld-install
-bunx wrangler@4.142.0 r2 bucket domain list arveld-install
+npm exec wrangler -- r2 bucket dev-url disable arveld-install
+npm exec wrangler -- r2 bucket domain list arveld-install
 ```
 
 Keep `r2.dev` disabled. Do not add a CNAME to an `r2.dev` URL. The custom domain
@@ -70,6 +74,10 @@ the two installer assets and `SHA256SUMS` from that published immutable release;
 it never rebuilds an installer from the current checkout. Promotion additionally
 requires both a stable `vX.Y.Z` tag and GitHub's `prerelease` flag to be false.
 Older releases that do not contain installers cannot be published this way.
+
+The publication job installs Wrangler from the website lockfile with `npm ci`.
+Website and installer publication therefore use the same audited dependency
+versions, without a separate global Wrangler installation.
 
 [`publish-installers.sh`](../../scripts/publish-installers.sh) verifies both
 scripts' checksums, syntax, version and component before any R2 write. It uploads
