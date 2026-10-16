@@ -75,7 +75,7 @@ jobs:
       - name: Verify native Linux installation and Agent connection with systemd
         run: sudo env GITHUB_ACTIONS=true python3 tests/installers/systemd.py "$RUNNER_TEMP/release/assets" "$VERSION"
       - name: Inventory controller dependencies
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: arveld:${{ inputs.version }}-${{ matrix.arch }}
           syft-version: v1.52.0
@@ -83,7 +83,7 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
       - name: Inventory Agent dependencies
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           image: arveld-agent:${{ inputs.version }}-${{ matrix.arch }}
           syft-version: v1.52.0
@@ -91,7 +91,7 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
       - name: Save tested packages and images as workflow artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-${{ matrix.arch }}
           path: |
@@ -102,7 +102,7 @@ jobs:
           if-no-files-found: error
       - name: Upload failure log
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: package-failure-${{ matrix.arch }}
           path: ${{ runner.temp }}/arveld-package.log
