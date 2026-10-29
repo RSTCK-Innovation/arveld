@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
-	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/open-telemetry/opamp-go v0.24.0
 	github.com/prometheus/client_model v0.6.3
