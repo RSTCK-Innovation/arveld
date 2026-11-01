@@ -21,7 +21,7 @@ defaults:
 jobs:
   application:
     name: Application
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
       - name: Describe application checks
@@ -60,11 +60,11 @@ jobs:
       - name: Set up Task
         uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
         with:
-          version: 3.53.1
+          version: 3.54.0
       - name: Set up golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.14.0
+          version: v2.15.0
           install-only: true
       - name: Install frontend dependencies
         run: task web:install
@@ -83,7 +83,7 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Describe documentation checks
@@ -99,15 +99,15 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version-file: website/.node-version
           cache: npm
           cache-dependency-path: website/package-lock.json
       - name: Set up Task
         uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
         with:
-          version: 3.53.1
+          version: 3.54.0
       - name: Install documentation dependencies
         run: task website:install
       - name: Build documentation website
@@ -124,12 +124,14 @@ jobs:
 
   installers:
     name: Linux installers (${{ matrix.image }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        image: ['ubuntu:24.04', 'debian:12', 'almalinux:9', 'rockylinux:9', 'fedora:43', 'redhat/ubi9:9.6', 'amazonlinux:2023', 'opensuse/leap:16.0', 'archlinux:base']
+        # Keep supported older distributions alongside current stable releases.
+        # Fedora 45, Leap 16.1 and Amazon Linux 2027 are still prereleases.
+        image: ['ubuntu:24.04', 'ubuntu:26.04', 'debian:12', 'debian:13', 'almalinux:9', 'almalinux:10', 'rockylinux/rockylinux:9', 'rockylinux/rockylinux:10', 'fedora:44', 'redhat/ubi9:9.8', 'redhat/ubi10:10.2', 'amazonlinux:2023', 'opensuse/leap:16.0', 'archlinux:base']
     steps:
       - name: Explain distribution fixtures and expected rejections
         env:
@@ -155,7 +157,7 @@ jobs:
 
   secrets:
     name: Secrets
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Describe workflow, publication and secret checks

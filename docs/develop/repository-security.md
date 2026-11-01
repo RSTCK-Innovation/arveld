@@ -29,7 +29,7 @@ security subscriptions. Run it from the repository root after reviewing changes.
   credentials and do not use `pull_request_target`.
 - Dependabot alerts/security updates and twice-monthly version updates cover Go, npm,
   Docker and Actions. The hosted Bun updater cannot read lockfile version 2, so
-  frontend version updates remain manual using Bun 1.4.2, with available versions
+  frontend version updates remain manual using Bun 1.4.4, with available versions
   reported by the scheduled dependency update workflow. The frontend audit
   workflow checks the complete `web/bun.lock` and `website/package-lock.json`
   on PRs, main pushes and weekly,
@@ -59,12 +59,12 @@ interval. It uses GitHub's supported `interval: cron` / `cronjob` configuration.
 Dependency security alerts and security updates operate separately from that
 version-update schedule; the weekly frontend security audit remains enabled.
 
-The controller and Agent have separate Go update entries because their OpAMP
-APIs have different compatibility requirements. Minor/major version updates of
-`opamp-go` in the Agent are held for review with the upstream Supervisor; patch
-updates remain eligible. Revisit that constraint when the Supervisor and OpAMP
-extension adopt the newer API. Collector updates also require synchronizing the
-Agent's builder manifest, generated inventory and local image references.
+The controller and Agent have separate Go update entries. Review OpAMP updates
+with the upstream Supervisor and extension requirements; both modules currently
+use v0.25.0, supported by contrib v0.164.1. Collector updates also require
+synchronizing the Agent's builder manifest, generated inventory, provider module
+versions and local image references. Update Core and contrib as a compatible
+release set, including Core's root module when packages move into submodules.
 
 The **Dependency update report** workflow checks the unsupported sources on the
 same calendar days at 06:43 UTC, on PRs changing its inputs, or on demand through Actions:

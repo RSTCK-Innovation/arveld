@@ -14,7 +14,7 @@ services:
         target: /etc/arveld/arveld.yml
 
   agent:
-    image: arveld-agent:0.161.0-arveld
+    image: arveld-agent:0.164.1-arveld
     build: ./agent
     profiles: [agent]
     restart: unless-stopped

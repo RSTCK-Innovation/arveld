@@ -42,11 +42,19 @@ Update the Collector and contrib modules as a compatible release set. Keep
 the provider module versions in `collector.go`, and local image references in
 sync, then run `task agent:generate` to refresh the component inventory.
 
-Collector contrib v0.161.0 requires `opamp-go` v0.23.0. Its Supervisor and
-OpAMP extension do not compile against v0.24.0, which changes the package
-manager interface and configuration protobuf types. The controller's separate
-module can use v0.24.0; the Docker integration tests exercise their protocol
-compatibility. Revisit the Agent constraint when upstream adopts the new API.
+Collector contrib v0.164.1 uses Core v0.164.0, stable Collector modules v1.70.0
+and `opamp-go` v0.25.0. The controller uses the same stable Collector and OpAMP
+versions. Core and contrib patch numbers need not match: use the Core versions
+required by the contrib release. Upgrade the root Collector module alongside its
+submodules to avoid ambiguous imports when upstream extracts a new module.
+The Docker integration tests exercise the resulting protocol compatibility.
+
+Keep `github.com/gobwas/glob` on v0.2.3 in both modules until Collector confmap
+supports its v1 API: v1.1.0 removes the `glob.Glob` interface and does not compile
+with confmap v1.70.0. Dependabot excludes this incompatible major update.
+
+Since contrib v0.163.0, the Supervisor rejects `reports_remote_config: true`.
+Keep `accepts_remote_config` enabled instead; it advertises both capabilities.
 
 ## Build the image
 
@@ -57,7 +65,7 @@ task agent:build
 ```
 
 [Taskfile.yml](../../Taskfile.yml) owns the local image tag, currently
-`arveld-agent:0.161.0-arveld`.
+`arveld-agent:0.164.1-arveld`.
 [Dockerfile](../../agent/Dockerfile) compiles the same `cmd/arveld-agent` program
 using the dependency versions in `agent/go.mod`. Its final image contains that
 executable, HTTPS trust certificates and the writable state directory. It retains

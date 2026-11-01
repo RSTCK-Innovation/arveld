@@ -56,7 +56,7 @@ func TestSupervisorAppliesMonitorLifecycle(t *testing.T) {
 		output, err := exec.CommandContext(ctx, "docker", "run", "--detach", "--name", container, //nolint:gosec // Test-owned arguments, no shell interpolation.
 			"--add-host", "host.docker.internal:host-gateway",
 			"--env", "ARVELD_AGENT_TOKEN="+token, "--env", "ARVELD_URL="+dockerHostURL(t, url),
-			"--volume", "/:/hostfs:ro", "--volume", "/var/lib/arveld-agent", "arveld-agent:0.161.0-arveld").CombinedOutput()
+			"--volume", "/:/hostfs:ro", "--volume", "/var/lib/arveld-agent", "arveld-agent:0.164.1-arveld").CombinedOutput()
 		cancel()
 		if err != nil {
 			t.Fatalf("start lifecycle Agent: %v\n%s", err, output)

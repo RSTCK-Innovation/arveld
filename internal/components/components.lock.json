@@ -2,72 +2,72 @@
   "schema_version": 1,
   "components": {
     "prometheus": {
-      "version": "3.14.0",
+      "version": "3.15.1",
       "artifacts": {
         "darwin/amd64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.darwin-amd64.tar.gz",
-          "sha256": "a14307b9726e66cadb81be9a544732623af26dabeb7702c987aa9c3c062ada34",
-          "size": 113130700
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.darwin-amd64.tar.gz",
+          "sha256": "c89fcb30045d8c394c9d93e96cbbee3aaf2448a48326b417e811eb4e528edf88",
+          "size": 116920976
         },
         "darwin/arm64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.darwin-arm64.tar.gz",
-          "sha256": "a9623f7f4fe65b1b171b423c1a72bbf23dfdf41a171dcb33e7dd302af80dc01c",
-          "size": 106416837
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.darwin-arm64.tar.gz",
+          "sha256": "0d4d3d9837d27e4fcd0bd16d115b1b8d6732a4bf3e69107f1190d9ef653ae471",
+          "size": 109721715
         },
         "linux/amd64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.linux-amd64.tar.gz",
-          "sha256": "f665c6da19eb7ba399c915d30c7d9793c9b417bf8a749b504bc470678631478d",
-          "size": 107111714
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.linux-amd64.tar.gz",
+          "sha256": "6a726885328ad9efebbf36e876ce2fb6225468a71fd1e7ce3ba666d5f4d97a84",
+          "size": 111690181
         },
         "linux/arm64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.linux-arm64.tar.gz",
-          "sha256": "077f3781ab7245dc04c9a3c9b78ba120fc8e41aa0dc97489b0af67247e50ba83",
-          "size": 98015563
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.linux-arm64.tar.gz",
+          "sha256": "ceb6d21493c37ca0b4513b147642797c68cf39a0f50a444d50e1e80c74f21b26",
+          "size": 102008498
         },
         "windows/amd64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.windows-amd64.zip",
-          "sha256": "e57fbb99e4d0bc734d2f2b3aeb68c02fba38862259dc99a95c27ea46d9ccba0a",
-          "size": 110095743
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.windows-amd64.zip",
+          "sha256": "ba25b5e590520cb9fb028edef99bdc8523244d2d489b8c629e0d453d94fb030b",
+          "size": 114713365
         },
         "windows/arm64": {
-          "url": "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.windows-arm64.zip",
-          "sha256": "59ee46d172f88b462e20a52f127b2ed9b01e475318250672db29a7430fe17f0d",
-          "size": 100275643
+          "url": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.windows-arm64.zip",
+          "sha256": "7ac69f8a41a05672282e87e6d8c998a9628cb83fbd3778599de4377019b7382d",
+          "size": 104282490
         }
       }
     },
     "alertmanager": {
-      "version": "0.34.0",
+      "version": "0.34.2",
       "artifacts": {
         "darwin/amd64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.darwin-amd64.tar.gz",
-          "sha256": "2c76c6bb30f030296cbfbf803bfd99494987197fcb8743f73ef5f351d568ce97",
-          "size": 40526851
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.darwin-amd64.tar.gz",
+          "sha256": "fa5a50303c58771c261fcbed4cf5f9a852cf2c6064942adbd92c6859c65c5f93",
+          "size": 40633621
         },
         "darwin/arm64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.darwin-arm64.tar.gz",
-          "sha256": "0cb31efe439c58ab77594b62a28f9de95f2d08beccf0f11eba4b822b2f549b82",
-          "size": 38188107
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.darwin-arm64.tar.gz",
+          "sha256": "dc1fcd4ad3e8bef111683eaf385aa5b2b02493277bca9126c129e0a39fc68a4f",
+          "size": 38290146
         },
         "linux/amd64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.linux-amd64.tar.gz",
-          "sha256": "19c75a11d8c03dc4ade7abdbddfb3a8f28c9e7b000d0849cda0cd71dffd74a03",
-          "size": 39204264
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.linux-amd64.tar.gz",
+          "sha256": "17ee14acd0f6ba6e25a436ff223d9c17ddd5cf484f543ad12f0932eaa89ba186",
+          "size": 39318621
         },
         "linux/arm64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.linux-arm64.tar.gz",
-          "sha256": "a96ef16598ddc58e84d28167b3352b30e3205698d76c56ef467e4504d7664da4",
-          "size": 36055177
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.linux-arm64.tar.gz",
+          "sha256": "5aaad82e3d167c30c06ce7d38677d2892a6f66f4c3613ea17af7481750fdd0b0",
+          "size": 36167530
         },
         "windows/amd64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.windows-amd64.zip",
-          "sha256": "0e4b832325d6d9b737b3255a242da7b11cb7a641d7f81f7e2aabe34b3207cd79",
-          "size": 40121775
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.windows-amd64.zip",
+          "sha256": "7c322f966693f3aed7f62c643fa75de42312ab27ae4957b077c2e12ee78c153a",
+          "size": 40235606
         },
         "windows/arm64": {
-          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.windows-arm64.zip",
-          "sha256": "4ab57390835fba2a4060b8ba365bb910cfb657e3c74295d1114015a959c412f4",
-          "size": 36772290
+          "url": "https://github.com/prometheus/alertmanager/releases/download/v0.34.2/alertmanager-0.34.2.windows-arm64.zip",
+          "sha256": "6ed974c97cf4db7d486daefd68d97a4930e355b8b141ab44ae3dcf2b454c3ede",
+          "size": 36869253
         }
       }
     }

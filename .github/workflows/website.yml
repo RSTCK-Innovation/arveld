@@ -26,7 +26,7 @@ defaults:
 jobs:
   publish:
     name: Publish landing and documentation to arveld.com
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Check out the deployment revision
@@ -59,9 +59,9 @@ jobs:
               --jq '[.workflow_runs[] | select(.head_branch == "main" and .conclusion == "success")] | length > 0' | grep -qx true
           done
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version-file: website/.node-version
           cache: npm
           cache-dependency-path: website/package-lock.json
       - name: Install locked website dependencies

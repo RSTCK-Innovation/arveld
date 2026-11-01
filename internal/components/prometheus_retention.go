@@ -6,8 +6,8 @@ import (
 	"math"
 )
 
-// parsePrometheusRetentionSize targets the size syntax of Prometheus v3.14.0:
-// https://github.com/prometheus/prometheus/blob/v3.14.0/config/config.go (TSDBRetentionConfig).
+// parsePrometheusRetentionSize targets the size syntax of Prometheus v3.15.1:
+// https://github.com/prometheus/prometheus/blob/v3.15.1/config/config.go (TSDBRetentionConfig).
 // Recheck compatibility when updating the locked Prometheus version; local syntax
 // examples do not establish complete parity with upstream numeric conversions.
 func parsePrometheusRetentionSize(value string) (float64, error) {

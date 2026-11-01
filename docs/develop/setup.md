@@ -19,7 +19,8 @@ and browser review rather than a behavioral test suite.
 ## Requirements
 
 - Go matching `go.mod`
-- Bun 1.4.2 for frontend development, source builds and the complete local verification gate
+- Bun 1.4.4 for frontend development, source builds and the complete local verification gate
+- Node.js matching `website/.node-version` for documentation builds and installer publishing
 - Task, for the repository's development commands
 - curl and jq, for the component manifest helper tasks
 - Docker with Compose 2.23.1 or later, for controller packaging and real Agent checks
@@ -141,8 +142,8 @@ Generate the manifest by passing both versions explicitly:
 
 ```sh
 task components:manifest:update \
-  PROMETHEUS_VERSION=3.14.0 \
-  ALERTMANAGER_VERSION=0.34.0
+  PROMETHEUS_VERSION=3.15.1 \
+  ALERTMANAGER_VERSION=0.34.2
 ```
 
 The task runs [`scripts/update-components-lock.sh`](../../scripts/update-components-lock.sh),
