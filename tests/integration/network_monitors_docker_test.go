@@ -115,7 +115,7 @@ func TestSupervisorExecutesNetworkMonitors(t *testing.T) {
 		"--add-host", "host.docker.internal:host-gateway",
 		"--env", "ARVELD_AGENT_TOKEN="+token, "--env", "ARVELD_URL="+dockerHostURL(t, controllerURL),
 		"--volume", "/:/hostfs:ro", "--volume", "/var/lib/arveld-agent",
-		"arveld-agent:0.161.0-arveld")
+		"arveld-agent:0.164.1-arveld")
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()

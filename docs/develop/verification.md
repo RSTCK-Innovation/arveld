@@ -30,8 +30,8 @@ disable cgo; the race gate enables it.
 ## Continuous integration
 
 The [CI workflow](../../.github/workflows/ci.yml) runs on pull requests targeting
-`main`, pushes to `main`, and manual dispatch. Application and documentation run on Ubuntu 24.04 `amd64`; packaging also
-runs on a native Ubuntu 24.04 `arm64` runner:
+`main`, pushes to `main`, and manual dispatch. Application and documentation run on Ubuntu 26.04 `amd64`; packaging also
+runs on a native Ubuntu 26.04 `arm64` runner:
 
 | Check | Commands and coverage |
 | --- | --- |
@@ -50,8 +50,8 @@ during recovery. These tests use a local filesystem at the Wrangler boundary.
 The jobs run independently. A new run cancels an older run for the same pull
 request or branch. Go, Bun, and npm dependencies are cached; installation still
 uses the checked-in lockfiles. Go and Bun versions come from `go.mod` and
-`web/package.json`. Node.js uses major version 24; Task and golangci-lint versions
-are pinned in the workflow, and actions are pinned to commit SHAs.
+`web/package.json`. Node.js uses the LTS version in `website/.node-version`. Task and golangci-lint
+versions are pinned in the workflow, and actions are pinned to commit SHAs.
 
 GitHub Actions retains each step's output. If a packaging job fails, its build
 and test logs are also uploaded for seven days. The Compose test includes
@@ -188,7 +188,7 @@ file for its required upstreams before treating it as a complete runtime proof.
 
 Tests that need native engines are opt-in. Use the versions pinned in
 [the component manifest](../../internal/components/components.lock.json), currently
-Prometheus 3.14.0 and Alertmanager 0.34.0. Pass **executable paths**, not server URLs.
+Prometheus 3.15.1 and Alertmanager 0.34.2. Pass **executable paths**, not server URLs.
 
 ```sh
 ARVELD_TEST_PROMETHEUS_BINARY=/absolute/path/to/prometheus \

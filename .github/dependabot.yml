@@ -16,6 +16,10 @@ updates:
       cronjob: '27 7 1,16 * *'
       timezone: Europe/Paris
     open-pull-requests-limit: 5
+    # Collector confmap still uses glob.Glob, removed in glob v1.
+    ignore:
+      - dependency-name: github.com/gobwas/glob
+        update-types: ['version-update:semver-major']
     groups:
       compatible:
         patterns: ['*']
@@ -27,11 +31,10 @@ updates:
       cronjob: '37 7 1,16 * *'
       timezone: Europe/Paris
     open-pull-requests-limit: 5
-    # Supervisor/extension v0.161.0 require opamp-go v0.23.0. Revisit this
-    # version-update constraint when upstream adopts the newer OpAMP API.
+    # Collector confmap still uses glob.Glob, removed in glob v1.
     ignore:
-      - dependency-name: github.com/open-telemetry/opamp-go
-        update-types: ['version-update:semver-minor', 'version-update:semver-major']
+      - dependency-name: github.com/gobwas/glob
+        update-types: ['version-update:semver-major']
     groups:
       compatible:
         patterns: ['*']

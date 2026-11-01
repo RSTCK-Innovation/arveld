@@ -2,7 +2,7 @@ version: "3"
 
 vars:
   ARVELD_BINARY: "{{.ROOT_DIR}}/bin/arveld"
-  AGENT_IMAGE: arveld-agent:0.161.0-arveld
+  AGENT_IMAGE: arveld-agent:0.164.1-arveld
 
 tasks:
   default:
@@ -92,7 +92,7 @@ tasks:
       - task: web:check
 
   web:install:
-    desc: Install locked frontend dependencies with Bun 1.4.2
+    desc: Install locked frontend dependencies with Bun 1.4.4
     dir: web
     cmds:
       - bun install --frozen-lockfile
@@ -258,7 +258,7 @@ tasks:
     dir: agent
     cmds:
       - >-
-        go run go.opentelemetry.io/collector/cmd/builder@v0.161.0
+        go run go.opentelemetry.io/collector/cmd/builder@v0.164.0
         --config=collector-builder.yaml
         --skip-compilation --skip-get-modules
       - cp _build/components.go cmd/arveld-agent/components.go

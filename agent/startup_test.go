@@ -61,7 +61,7 @@ func TestAgentRequestsOpAMPWithEnvironment(t *testing.T) {
 		"--add-host", "host.docker.internal:host-gateway",
 		"--env", "ARVELD_AGENT_TOKEN="+token,
 		"--env", "ARVELD_URL=http://host.docker.internal:"+port+"/arveld/",
-		"arveld-agent:0.161.0-arveld",
+		"arveld-agent:0.164.1-arveld",
 	)
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("start agent: %v\n%s", err, output)

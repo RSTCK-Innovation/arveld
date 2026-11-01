@@ -70,7 +70,7 @@ func TestConfigurationValidatesWithCollector(t *testing.T) {
 				"--env=ARVELD_AGENT_TOKEN=test-key",
 				"--env=ARVELD_URL=http://arveld.example.com",
 				"--env=ARVELD_COLLECTOR_CONFIG",
-				"arveld-agent:0.161.0-arveld",
+				"arveld-agent:0.164.1-arveld",
 				"collector", "validate", "--config=env:ARVELD_COLLECTOR_CONFIG",
 			)
 			command.Env = append(os.Environ(), "ARVELD_COLLECTOR_CONFIG="+string(content))

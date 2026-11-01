@@ -16,7 +16,7 @@ func TestAgentDistribution(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
 	defer cancel()
 	output, err := exec.CommandContext(ctx, "docker", "run", "--rm",
-		"arveld-agent:0.161.0-arveld", "collector", "components",
+		"arveld-agent:0.164.1-arveld", "collector", "components",
 	).CombinedOutput()
 	if err != nil {
 		t.Fatalf("list Agent components: %v\n%s", err, output)

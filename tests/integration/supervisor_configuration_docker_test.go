@@ -107,7 +107,7 @@ func exerciseSupervisorConfiguration(t *testing.T, mode string) {
 		// image-provided root override. The executable is identical in both modes.
 		arguments = append(arguments, "--env", "ARVELD_HOST_ROOT")
 	}
-	docker(append(arguments, "arveld-agent:0.161.0-arveld")...)
+	docker(append(arguments, "arveld-agent:0.164.1-arveld")...)
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
@@ -191,7 +191,7 @@ func exerciseSupervisorConfiguration(t *testing.T, mode string) {
 	// Recovery must follow a startup failure, not rejection of an unknown component.
 	docker("run", "--rm",
 		"--env", "ARVELD_DIAGNOSTIC_CONFIG="+string(invalid),
-		"arveld-agent:0.161.0-arveld", "collector", "validate", "--config=env:ARVELD_DIAGNOSTIC_CONFIG")
+		"arveld-agent:0.164.1-arveld", "collector", "validate", "--config=env:ARVELD_DIAGNOSTIC_CONFIG")
 	failed, err := store.Save(t.Context(), uid, invalid)
 	if err != nil {
 		t.Fatal(err)

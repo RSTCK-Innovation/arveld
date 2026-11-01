@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
-  "packageManager": "bun@1.4.2",
+  "packageManager": "bun@1.4.4",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
@@ -19,32 +19,32 @@
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
-    "@mui/icons-material": "^9.4.0",
-    "@mui/material": "^9.4.0",
-    "@mui/styled-engine-sc": "^9.4.0",
-    "@mui/x-charts": "^9.13.0",
-    "@tanstack/react-query": "^5.102.8",
-    "@tanstack/react-router": "^1.170.35",
-    "i18next": "^26.4.2",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@mui/styled-engine-sc": "^9.5.0",
+    "@mui/x-charts": "^9.17.0",
+    "@tanstack/react-query": "^5.105.1",
+    "@tanstack/react-router": "^1.170.46",
+    "i18next": "^26.7.1",
     "prismjs": "^1.30.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-i18next": "^17.0.13",
-    "styled-components": "^6.5.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.11",
+    "styled-components": "^6.6.0",
     "yaml": "^2.9.1",
-    "zod": "^4.6.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.13",
-    "@types/bun": "^1.4.2",
+    "@biomejs/biome": "^2.6.4",
+    "@types/bun": "^1.4.4",
     "@types/prismjs": "^1.26.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.5"
   },
   "overrides": {
-    "@mui/styled-engine": "npm:@mui/styled-engine-sc@9.4.0"
+    "@mui/styled-engine": "npm:@mui/styled-engine-sc@9.5.0"
   }
 }

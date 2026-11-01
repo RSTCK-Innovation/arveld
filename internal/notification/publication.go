@@ -119,7 +119,7 @@ func (publisher *Publisher) loaded(ctx context.Context, content []byte) (bool, e
 
 // Match config/coordinator.go in the pinned Alertmanager release: six MD5 bytes
 // interpreted little-endian. This is a compatibility check, not authentication.
-// see: https://github.com/prometheus/alertmanager/blob/v0.34.0/config/coordinator.go#L180
+// see: https://github.com/prometheus/alertmanager/blob/v0.34.2/config/coordinator.go#L180
 func configurationFingerprint(content []byte) float64 {
 	digest := md5.Sum(content) //nolint:gosec // Matches Alertmanager's non-security configuration fingerprint.
 	var truncated [8]byte

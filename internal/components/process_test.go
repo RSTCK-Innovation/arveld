@@ -145,7 +145,10 @@ func TestRunProcessAllowsGracefulShutdownBeforeKill(t *testing.T) {
 	cancel()
 
 	select {
-	case <-processErrors:
+	case err := <-processErrors:
+		if err != nil && !errors.Is(err, context.Canceled) {
+			t.Fatalf("graceful process shutdown: %v", err)
+		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("runProcess did not return after context cancellation")
 	}

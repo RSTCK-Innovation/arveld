@@ -33,8 +33,8 @@ func runCollector(arguments []string) error {
 			},
 		},
 		ProviderModules: map[string]string{
-			"env":  "go.opentelemetry.io/collector/confmap/provider/envprovider v1.67.0",
-			"file": "go.opentelemetry.io/collector/confmap/provider/fileprovider v1.67.0",
+			"env":  "go.opentelemetry.io/collector/confmap/provider/envprovider v1.70.0",
+			"file": "go.opentelemetry.io/collector/confmap/provider/fileprovider v1.70.0",
 		},
 	})
 	command.SetArgs(arguments)
