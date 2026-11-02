@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: Release candidate version
+        description: Stable, release candidate or CI fixture version
         required: true
         type: string
 

@@ -109,7 +109,6 @@ export function Brand() {
       <Typography component="span" variant="h5" color="text.primary">
         {t('arveld')}.
       </Typography>
-      <Chip label={t('BETA')} size="small" />
     </AppLink>
   );
 }

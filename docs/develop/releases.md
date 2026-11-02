@@ -1,6 +1,7 @@
-# Release candidates
+# Releases
 
-The [prerelease workflow](../../.github/workflows/release.yml) publishes Linux
+The [release workflow](../../.github/workflows/release.yml) publishes stable versions
+(`vX.Y.Z`) and release candidates (`vX.Y.Z-rc.N`). Both include Linux
 `amd64` and `arm64` controller/Agent archives, multi-architecture GHCR images,
 image SPDX inventories, SHA-256 checksums, standalone Linux installers for the
 controller and Agent, and a Compose file using release image tags.
@@ -76,24 +77,26 @@ digests. No moving `latest` container tag is published.
 1. Merge the release changes through a pull request and wait for the `CI` and frontend dependency
    audit push runs on that exact `main` commit to succeed. Inspect both CodeQL
    analyses and any open security alerts. Update release notes in
-   `.github/release-notes.md` before merging when preparing the next candidate.
+   `.github/release-notes.md` before merging when preparing the next release.
 2. Update local `main` and inspect the commit to release. Create an annotated,
    SSH-signed tag using a key in `.github/release-signers`:
 
    ```sh
    git switch main
    git pull --ff-only
-   VERSION=YOUR_NEW_RELEASE_CANDIDATE_TAG
+   VERSION=YOUR_NEW_RELEASE_TAG
    git tag -s "$VERSION" -m "Arveld $VERSION"
-   git verify-tag "$VERSION"
+   git -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$VERSION"
    git push origin "$VERSION"
    ```
 
-3. The workflow requires `vX.Y.Z-rc.N`, verifies the tag signature, checks that
+3. The workflow requires `vX.Y.Z` or `vX.Y.Z-rc.N` (excluding the CI fixture
+   `v0.0.0-rc.0`), verifies the tag signature, checks that
    the commit belongs to `main`, and requires successful main CI and frontend dependency audit
    runs for that exact commit. Only its publication job has contents/packages write access.
-4. Publication creates a draft, uploads every asset, then publishes it as a
-   prerelease. Repository settings make its assets and tag immutable. Verify
+4. Publication creates a draft and uploads every asset before publishing it.
+   Stable versions become GitHub's **Latest** release; candidates are marked as
+   prereleases and never become Latest. Repository settings make the assets and tag immutable. Verify
    the release page, both image platforms, checksums, attestations and a fresh
    installation. Newly created GHCR packages default to private even when the
    repository is public: set both release packages to public when public
@@ -101,10 +104,10 @@ digests. No moving `latest` container tag is published.
    Check that the packages are associated with `RSTCK-Innovation/arveld` and
    grant that repository Actions access. Repeat this check if a package is
    recreated after cleanup.
-5. The installer hosting job publishes versioned script URLs with promotion
-   disabled. The root URLs used by the Getting Started guide are reserved for
-   the latest promoted stable release. They become available with the first
-   stable promotion. If the job fails, recover using the
+5. The installer hosting job publishes versioned script URLs. Stable releases also
+   promote the root URLs used by the Getting Started guide, then verify that their
+   public downloads match the release assets. Candidates leave root URLs unchanged.
+   If the job fails, recover using the
    [installer hosting procedure](installer-hosting.md#publication-and-recovery);
    the GitHub release remains published and must not be recreated.
 6. The website job publishes the landing page and documentation from the same
@@ -114,7 +117,7 @@ digests. No moving `latest` container tag is published.
 The publisher refuses an existing draft or published release before pushing any
 image tags, so rerunning a published version cannot replace its registry tags.
 Version tags cannot be updated or deleted through the normal repository rules.
-Publish a new candidate to correct a published release. If a run fails before
+Publish a new version to correct a published release. If a run fails before
 publication, inspect its logs. A failed upload can leave a draft: delete only
 that unpublished draft before rerunning the failed publication job. Rerun via
 Actions; never recreate or move the tag. The workflow's manual trigger must also
@@ -168,5 +171,5 @@ and Alertmanager are downloaded at runtime and are recorded separately in
 versioned Bun lockfile; an image inventory is not a full vulnerability audit.
 
 Complete the [public distribution checklist](repository-security.md#public-distribution-checklist)
-for each candidate. Root installer URLs remain reserved for stable releases;
+for each release. Root installer URLs remain reserved for stable releases;
 public candidates use versioned URLs only.

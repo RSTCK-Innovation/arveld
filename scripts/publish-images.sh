@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 : "${VERSION:?Missing VERSION}" "${GH_REPO:?Missing GH_REPO}" "${GITHUB_OUTPUT:?Missing GITHUB_OUTPUT}"
-[[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]
+if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ && "$VERSION" != v0.0.0-rc.0 ]]; then
+  echo 'Expected vX.Y.Z or vX.Y.Z-rc.N, excluding the CI fixture version.' >&2
+  exit 1
+fi
 printf '[CHECK] Refuse an existing release for %s before changing any registry tag.\n' "$VERSION"
 # Fail before changing any registry tag when a draft or published release exists.
 # API errors must also stop publication, rather than being mistaken for absence.

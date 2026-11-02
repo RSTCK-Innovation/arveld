@@ -1,4 +1,4 @@
-# Local installation from source. Public release images are not available yet.
+# Local installation from source. Use a GitHub release's compose.yaml for published images.
 services:
   controller:
     image: arveld:dev

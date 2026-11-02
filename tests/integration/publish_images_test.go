@@ -9,7 +9,7 @@ import (
 )
 
 func TestPublishImagesUsesReleaseTags(t *testing.T) {
-	for _, version := range []string{"v0.1.0-rc.3", "v12.34.56-rc.78"} {
+	for _, version := range []string{"v0.1.0", "v12.34.56", "v0.1.0-rc.3", "v12.34.56-rc.78"} {
 		t.Run(version, func(t *testing.T) {
 			directory, command := releasePublisherFixture(t, version, "")
 			if output, err := command.CombinedOutput(); err != nil {
@@ -58,14 +58,30 @@ func TestPublishImagesUsesReleaseTags(t *testing.T) {
 }
 
 func TestPublishImagesRefusesExistingReleaseOrAPIError(t *testing.T) {
-	for _, state := range []string{"existing", "error"} {
-		t.Run(state, func(t *testing.T) {
-			directory, command := releasePublisherFixture(t, "v0.1.0-rc.3", state)
+	for _, version := range []string{"v0.1.0", "v0.1.0-rc.3"} {
+		for _, state := range []string{"existing", "error"} {
+			t.Run(version+"/"+state, func(t *testing.T) {
+				directory, command := releasePublisherFixture(t, version, state)
+				if output, err := command.CombinedOutput(); err == nil {
+					t.Fatalf("publication must fail when release lookup returns %s, got:\n%s", state, output)
+				}
+				if _, err := os.Stat(filepath.Join(directory, "docker-calls")); !os.IsNotExist(err) {
+					t.Fatalf("publication must stop before any registry operation: %v", err)
+				}
+			})
+		}
+	}
+}
+
+func TestPublishImagesRejectsUnsupportedVersionsBeforeRegistryChanges(t *testing.T) {
+	for _, version := range []string{"main", "0.1.0", "v0.1", "v0.1.0-beta.1", "v0.1.0-rc", "v0.1.0-rc.1-extra", "v0.0.0-rc.0"} {
+		t.Run(version, func(t *testing.T) {
+			directory, command := releasePublisherFixture(t, version, "")
 			if output, err := command.CombinedOutput(); err == nil {
-				t.Fatalf("publication must fail when release lookup returns %s, got:\n%s", state, output)
+				t.Fatalf("publication must reject unsupported version %q, got:\n%s", version, output)
 			}
 			if _, err := os.Stat(filepath.Join(directory, "docker-calls")); !os.IsNotExist(err) {
-				t.Fatalf("publication must stop before any registry operation: %v", err)
+				t.Fatalf("invalid versions must not change registry tags: %v", err)
 			}
 		})
 	}
