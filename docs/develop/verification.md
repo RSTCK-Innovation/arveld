@@ -103,15 +103,15 @@ an ordinary installation failing its checksum remains an error.
 `v0.0.0-rc.0` is a CI-only version label. Distribution compatibility tests use
 tiny fixture executables with this version; native package jobs build real
 executables from the commit using the same label. Neither publishes this label
-as a release. Prerelease builds receive the actual signed `vX.Y.Z-rc.N` tag instead.
+as a release. Release builds receive the actual signed `vX.Y.Z` or `vX.Y.Z-rc.N` tag instead.
 
 ### Workflow responsibilities
 
 | Workflow | What its output explains |
 | --- | --- |
 | CI | Application, documentation, native packaging, distribution installer tests, workflow validation and secret scanning |
-| Release packages | Shared package checks invoked inside CI or Prerelease; real binaries, version checks, Compose/systemd tests and temporary artifacts |
-| Prerelease | Signed-tag admission, successful checks on the exact main commit, publication of tested artifacts and conditional attestations |
+| Release packages | Shared package checks invoked inside CI or Release; real binaries, version checks, Compose/systemd tests and temporary artifacts |
+| Release | Signed-tag admission, successful checks on the exact main commit, publication of tested artifacts, conditional attestations and stable promotion |
 | Publish Linux installers | Immutable release validation, script allowlist/checksums, stable-only root promotion and public HTTPS verification |
 | Frontend dependency audit | Known vulnerability audit of the application frontend and website lockfiles; high/critical advisories fail the job |
 | CodeQL | Source security analysis for public repositories; a separate explanation states explicitly when private-repository analysis was skipped |

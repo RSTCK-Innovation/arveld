@@ -1,6 +1,6 @@
 # Repository protection
 
-Arveld is public and in prerelease. The repository protection baseline
+Arveld is public. The repository protection baseline
 is stored in `.github/rulesets/` and applied by
 `scripts/configure-repository.sh` using a repository administrator's authenticated
 GitHub CLI. The script does not change visibility, organization policies or paid

@@ -5,7 +5,7 @@ set -euo pipefail
 version=${1:?Usage: package-release.sh VERSION ARCH OUTPUT_DIRECTORY}
 arch=${2:?Missing architecture}
 output=${3:?Missing output directory}
-[[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] || { echo 'Expected vX.Y.Z-rc.N' >&2; exit 1; }
+[[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]] || { echo 'Expected vX.Y.Z or vX.Y.Z-rc.N' >&2; exit 1; }
 [[ "$arch" == amd64 || "$arch" == arm64 ]] || { echo 'Expected amd64 or arm64' >&2; exit 1; }
 # The Agent is built from its own Docker context and carries identical legal files.
 cmp LICENSE agent/LICENSE

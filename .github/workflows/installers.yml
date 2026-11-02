@@ -102,7 +102,9 @@ jobs:
           : "${CLOUDFLARE_ACCOUNT_ID:?Missing CLOUDFLARE_ACCOUNT_ID}"
           : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_INSTALLERS_API_TOKEN}"
           sh scripts/publish-installers.sh "$VERSION" installers
-      - name: Verify the public versioned downloads
+      - name: Verify the public versioned and promoted downloads
+        env:
+          PROMOTE_INSTALLERS: ${{ inputs.promote }}
         run: |
           mkdir verification
           cd verification
@@ -117,4 +119,13 @@ jobs:
           echo '[CHECK] Compare public scripts byte-for-byte with the immutable GitHub release assets.'
           cmp install-arveld.sh ../installers/install-arveld.sh
           cmp install-arveld-agent.sh ../installers/install-arveld-agent.sh
+          if [[ "$PROMOTE_INSTALLERS" == true ]]; then
+            for file in install-arveld.sh install-arveld-agent.sh; do
+              printf '[CHECK] Verify promoted https://install.arveld.com/%s against the release asset.\n' "$file"
+              curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+                --retry 5 --retry-all-errors --connect-timeout 15 --max-time 60 \
+                "https://install.arveld.com/$file" -o "promoted-$file"
+              cmp "promoted-$file" "../installers/$file"
+            done
+          fi
           echo '[PASS] Public downloads, checksums and release comparisons passed.'

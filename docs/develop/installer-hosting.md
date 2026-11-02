@@ -21,7 +21,7 @@ their versioned paths. Every script embeds its own exact version; use versioned
 paths when installing an Agent to match an
 existing controller. There is no bucket listing or installer at `/`.
 
-The root URLs become available with the first promoted stable release.
+The release workflow promotes stable releases to the root URLs automatically.
 Prereleases must not create or replace them. Unversioned bootstrap scripts
 must not be published to the root or to versioned paths.
 
@@ -86,7 +86,8 @@ only for an explicitly promoted stable version and after all versioned objects
 have uploaded. The script rejects prerelease promotion before any R2 write,
 including when invoked locally. Root updates are separate object writes; use
 the versioned paths when both components must match. The workflow
-downloads the versioned objects over HTTPS and compares them with the originals.
+downloads the versioned objects and any promoted root scripts over HTTPS and
+compares them with the originals.
 
 The R2 job is separate from GitHub release publication. A Cloudflare failure
 leaves the immutable GitHub release intact. Recover only the installer hosting
@@ -99,10 +100,9 @@ gh workflow run installers.yml --ref main -f version=YOUR_PUBLISHED_RELEASE_TAG 
 
 The default recovery leaves the root URLs unchanged, so replaying an old release
 does not move the entry points backwards. Use `-f promote=true` only when that
-release is stable and should become the default download. The current `Prerelease`
-workflow always sets `promote: false`; it does not publish stable releases.
-Once an immutable stable GitHub release with installer assets is available,
-promote it with the installer workflow, for example:
+release is stable and should become the default download. The `Release` workflow
+sets `promote: true` for stable tags and `false` for release candidates.
+To recover a failed stable promotion, use the installer workflow, for example:
 
 ```sh
 gh workflow run installers.yml --ref main -f version=v0.1.0 -f promote=true

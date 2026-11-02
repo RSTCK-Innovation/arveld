@@ -168,8 +168,8 @@ export const groups = [
 			[
 				"docs/develop/releases.md",
 				"docs/develop/releases",
-				"Release candidates",
-				"Build, test and publish signed release candidates.",
+				"Releases",
+				"Build, test and publish signed stable releases and candidates.",
 			],
 			[
 				"docs/develop/installer-hosting.md",

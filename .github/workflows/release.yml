@@ -1,4 +1,4 @@
-name: Prerelease
+name: Release
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: prerelease-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 defaults:
@@ -26,13 +26,14 @@ jobs:
       actions: read
     outputs:
       version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Describe release admission checks
         run: |
           cat <<'CHECKS'
           [PLAN] release admission checks
 
-          - Require a vX.Y.Z-rc.N tag with a trusted SSH signature.
+          - Require a vX.Y.Z or vX.Y.Z-rc.N tag with a trusted SSH signature.
           - Require its commit to belong to main.
           - Require successful main push runs of CI and Frontend dependency audit for that exact commit.
 
@@ -43,7 +44,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Require a signed release candidate from validated main
+      - name: Require a signed release from validated main
         id: version
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,8 +52,11 @@ jobs:
           VERSION: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
         run: |
-          echo '[CHECK] Require a release-candidate tag rather than a branch or CI fixture version.'
-          [[ "$REF_TYPE" == tag && "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]
+          echo '[CHECK] Require a stable or release-candidate tag, excluding the CI fixture version.'
+          if ! [[ "$REF_TYPE" == tag && "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ && "$VERSION" != v0.0.0-rc.0 ]]; then
+            echo 'Expected a stable or release-candidate tag, excluding the CI fixture version.' >&2
+            exit 1
+          fi
           printf '[CHECK] Verify the trusted SSH signature on %s.\n' "$VERSION"
           git -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$VERSION"
           revision=$(git rev-parse "$VERSION^{commit}")
@@ -65,6 +69,9 @@ jobs:
           done
           echo '[PASS] Tag signature, main ancestry and exact-commit checks passed.'
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          prerelease=false
+          if [[ "$VERSION" == *-rc.* ]]; then prerelease=true; fi
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
   packages:
     name: Packages
@@ -74,7 +81,7 @@ jobs:
       version: ${{ needs.validate.outputs.version }}
 
   publish:
-    name: Publish tested prerelease
+    name: Publish tested release
     needs: [validate, packages]
     runs-on: ubuntu-26.04
     timeout-minutes: 20
@@ -88,6 +95,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       VERSION: ${{ needs.validate.outputs.version }}
+      PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+      LATEST: ${{ needs.validate.outputs.prerelease == 'false' }}
     steps:
       - name: Describe publication operations and provenance limits
         run: |
@@ -96,10 +105,11 @@ jobs:
           - Download only the packages and images tested in this workflow run; do not rebuild them.
           - Refuse an existing GitHub release before pushing image tags.
           - Publish multi-architecture GHCR images and generate release metadata and SHA256SUMS.
-          - Create a draft release, upload every asset, then publish the immutable prerelease.
+          - Create a draft release, upload every asset, then publish the immutable release.
+          - Mark stable versions as Latest; release candidates remain prereleases.
 
           Build attestations run only on public repositories. Skipped attestation steps on a private repository do not claim verified provenance.
-          A separate installer job publishes versioned R2 scripts with root promotion disabled.
+          A separate installer job publishes versioned R2 scripts and promotes root URLs only for stable releases.
           CHECKS
       - name: Check out release metadata
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -141,12 +151,12 @@ jobs:
           subject-name: ${{ steps.images.outputs.agent_name }}
           subject-digest: ${{ steps.images.outputs.agent_digest }}
           push-to-registry: true
-      - name: Publish immutable prerelease after uploading all files
+      - name: Publish immutable release after uploading all files
         run: |
-          gh release create "$VERSION" --verify-tag --draft --prerelease --latest=false \
+          gh release create "$VERSION" --verify-tag --draft --prerelease="$PRERELEASE" --latest=false \
             --title "Arveld $VERSION" --notes-file .github/release-notes.md
           gh release upload "$VERSION" release/assets/*
-          gh release edit "$VERSION" --draft=false
+          gh release edit "$VERSION" --draft=false --latest="$LATEST"
 
   installers:
     name: Linux installer hosting
@@ -154,7 +164,7 @@ jobs:
     uses: ./.github/workflows/installers.yml
     with:
       version: ${{ needs.validate.outputs.version }}
-      promote: false
+      promote: ${{ needs.validate.outputs.prerelease == 'false' }}
     secrets:
       CLOUDFLARE_INSTALLERS_API_TOKEN: ${{ secrets.CLOUDFLARE_INSTALLERS_API_TOKEN }}
 

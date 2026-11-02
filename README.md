@@ -21,13 +21,11 @@ Read the [documentation at arveld.com](https://arveld.com/docs/). Its source liv
 in `docs/`; the website in `website/` publishes that same Markdown alongside the
 landing page.
 
-Arveld is public and in prerelease. Check
-[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) for published
-Linux `amd64` and `arm64` candidates and their GHCR images. Install a candidate
-using the [versioned installation instructions](docs/guides/advanced-installation.md#install-a-specific-version).
-The [Getting Started convenience scripts](docs/guides/installation.md) are reserved
-for stable releases and become available with the first stable promotion.
-If no candidate is published, [build from source](docs/develop/setup.md).
+Stable releases provide public Linux `amd64` and `arm64` binaries and GHCR images
+on [GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases/latest).
+The [Getting Started convenience scripts](docs/guides/installation.md) install the
+latest promoted stable release. To select an exact stable version or release
+candidate, follow the [versioned installation instructions](docs/guides/advanced-installation.md#install-a-specific-version).
 
 ## Development
 

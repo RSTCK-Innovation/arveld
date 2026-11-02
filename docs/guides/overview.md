@@ -7,12 +7,10 @@ explains Agents, Monitors, rules, incidents and silences.
 
 ## Start here
 
-Arveld is in prerelease. Check
-[GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases) for published
-candidates, then follow the [versioned installation instructions](advanced-installation.md#install-a-specific-version).
-The Getting Started convenience scripts below serve stable releases and become
-available with the first stable promotion. If no candidate is published, use
-[development setup](../develop/setup.md) to build from source.
+The Getting Started convenience scripts install the latest promoted stable release.
+Check [GitHub Releases](https://github.com/RSTCK-Innovation/arveld/releases/latest)
+for its notes and downloads. To select an exact stable version or release candidate,
+follow the [versioned installation instructions](advanced-installation.md#install-a-specific-version).
 
 1. [Install Arveld](installation.md) and create the administrator account.
 2. [Connect an Agent](agent-setup.md) on the network you want to observe.
