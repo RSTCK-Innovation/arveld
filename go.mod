@@ -8,16 +8,16 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/open-telemetry/opamp-go v0.25.0
 	github.com/prometheus/client_model v0.6.3
-	github.com/prometheus/common v0.73.1
-	go.opentelemetry.io/collector/component v1.70.0
-	go.opentelemetry.io/collector/confmap v1.70.0
-	go.opentelemetry.io/collector/pdata v1.70.0
+	github.com/prometheus/common v0.74.0
+	go.opentelemetry.io/collector/component v1.71.0
+	go.opentelemetry.io/collector/confmap v1.71.0
+	go.opentelemetry.io/collector/pdata v1.71.0
 	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/net v0.62.0
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 	golang.org/x/time v0.16.0
 	google.golang.org/protobuf v1.36.12
-	modernc.org/sqlite v1.61.1
+	modernc.org/sqlite v1.62.0
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	go.opentelemetry.io/collector/featuregate v1.70.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.71.0 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
@@ -51,7 +51,7 @@ require (
 	go.uber.org/zap v1.28.0 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	modernc.org/libc v1.80.0 // indirect
+	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
