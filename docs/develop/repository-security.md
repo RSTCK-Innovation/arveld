@@ -61,7 +61,7 @@ version-update schedule; the weekly frontend security audit remains enabled.
 
 The controller and Agent have separate Go update entries. Review OpAMP updates
 with the upstream Supervisor and extension requirements; both modules currently
-use v0.25.0, supported by contrib v0.164.1. Collector updates also require
+use v0.25.0, supported by contrib v0.165.1. Collector updates also require
 synchronizing the Agent's builder manifest, generated inventory, provider module
 versions and local image references. Update Core and contrib as a compatible
 release set, including Core's root module when packages move into submodules.

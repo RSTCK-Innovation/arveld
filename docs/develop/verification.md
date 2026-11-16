@@ -188,7 +188,7 @@ file for its required upstreams before treating it as a complete runtime proof.
 
 Tests that need native engines are opt-in. Use the versions pinned in
 [the component manifest](../../internal/components/components.lock.json), currently
-Prometheus 3.15.1 and Alertmanager 0.34.2. Pass **executable paths**, not server URLs.
+Prometheus 3.16.0 and Alertmanager 0.35.0. Pass **executable paths**, not server URLs.
 
 ```sh
 ARVELD_TEST_PROMETHEUS_BINARY=/absolute/path/to/prometheus \
