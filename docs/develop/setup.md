@@ -142,8 +142,8 @@ Generate the manifest by passing both versions explicitly:
 
 ```sh
 task components:manifest:update \
-  PROMETHEUS_VERSION=3.15.1 \
-  ALERTMANAGER_VERSION=0.34.2
+  PROMETHEUS_VERSION=3.16.0 \
+  ALERTMANAGER_VERSION=0.35.0
 ```
 
 The task runs [`scripts/update-components-lock.sh`](../../scripts/update-components-lock.sh),

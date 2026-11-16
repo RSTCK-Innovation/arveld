@@ -2,7 +2,7 @@ version: "3"
 
 vars:
   ARVELD_BINARY: "{{.ROOT_DIR}}/bin/arveld"
-  AGENT_IMAGE: arveld-agent:0.164.1-arveld
+  AGENT_IMAGE: arveld-agent:0.165.1-arveld
 
 tasks:
   default:
@@ -258,7 +258,7 @@ tasks:
     dir: agent
     cmds:
       - >-
-        go run go.opentelemetry.io/collector/cmd/builder@v0.164.0
+        go run go.opentelemetry.io/collector/cmd/builder@v0.165.0
         --config=collector-builder.yaml
         --skip-compilation --skip-get-modules
       - cp _build/components.go cmd/arveld-agent/components.go
